@@ -11,11 +11,13 @@ public class Parent_Movement : MonoBehaviour
 
 
     // --------------------------------- Targeting ---------------------------------
-    protected Vector3 idleTarget;
-    protected float targetRadius = 0.5f;
-    protected float newTargetMinLengthRadius = 6; //the minimum length away from our fish current position
-    protected float idle_velocity = 1;
-
+    protected Vector3 curr_roamTarget;
+    protected float targetRoam_ReachedRadius = 0.5f;        //used in determining if we have reached our destination
+    protected float targetClusterRoam_ReachedRadius = 0.1f; //same as targetRoam, but for clusterRoam
+    protected float newTarget_MinDistanceRad = 3;           //the minimum distance away from our fish current position, Used in Roam, 
+    protected float newTarget_MaxDistanceRad = 2;           //the max distance from the fiish at curr position, used in cluster roam
+    protected float curr_roam_velocity = 1;
+    protected float[] range_roam_veloocity = new float[2] { 0.4f, 1.5f };
 
     //references
     protected Rigidbody2D rb;
@@ -24,10 +26,10 @@ public class Parent_Movement : MonoBehaviour
     protected bool IStatic = true;
     //same as above but for part 2 of code: profile vs non profiled viewd fish code
     protected bool IProfile = true;
+    protected int TankBoundryBounceStr = 15;
 
 
-
-    protected void Start()
+    protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         startTime = Time.time;
@@ -57,7 +59,7 @@ public class Parent_Movement : MonoBehaviour
       
         //this one uses rb, so make sure its attached
         var dir = (target_pos - transform.position).normalized;
-        rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Force);
+        rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Impulse);
 
        
     }
@@ -65,23 +67,20 @@ public class Parent_Movement : MonoBehaviour
 
 
     //create a new idle target, that is within the tank dimensions and outside the fish range.
-    protected virtual void NewRandomIdleTarget_Tank()
+    protected virtual void NewRandomIdleTarget_Tank(Guppy_States targetType = Guppy_States.Roam)
     {
 
         //since new target
         NewTargetVariables();
 
-        //new target
-        var curr_pos = new Vector3(transform.position.x, transform.position.y, 0);
-
         //tanke dememsions
-        float[] swimDem = TankBoundries.instance.spawn_arr;
+        float[] swimDem = TankBoundries.instance.swim_arr;
 
         //get a new target area thats far from this guppy
-        while (Mathf.Abs(Vector2.Distance(idleTarget, curr_pos)) < newTargetMinLengthRadius)
+        while (Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) < newTarget_MinDistanceRad)
         {
 
-            idleTarget = new Vector3(
+            curr_roamTarget = new Vector3(
                 Random.Range(swimDem[0], swimDem[1]),
                 Random.Range(swimDem[2], swimDem[3]),
                 0
@@ -95,34 +94,31 @@ public class Parent_Movement : MonoBehaviour
     //whenever a new target is set we reset our sprite variables
     protected virtual void NewTargetVariables()
     {
-        startTime = Time.time;      //reset our turning time for lerp
+        //reset our turning time for lerp
+        startTime = Time.time;
+
+
+        //new random velocity
+        curr_roam_velocity = Random.Range(range_roam_veloocity[0], range_roam_veloocity[1]);
     }
 
 
 
-    //Guppy will just do a roam mode but just fast and consistent
-    public void PanicMode()
+
+    //when we hit an edge just head back to center of tank, easiest way to solve for now
+    //reset the velocity and just transform.pos to inside the tank
+    //also we want to make it so we stay as close to the edge as possible
+    public void TankEdgeReached(Collider2D other)
     {
+        rb.linearVelocity = Vector2.zero;
+        //transform.position = Vector2.MoveTowards(transform.position, curr_roamTarget, 1 * Time.deltaTime);
 
+        var dir = (curr_roamTarget - transform.position).normalized;
+        rb.AddForce(dir * TankBoundryBounceStr * Time.deltaTime, ForceMode2D.Impulse);
     }
 
-    //Guppy is activly heading towards a food pellet
-    public void HungryMode()
-    {
 
-    }
 
-    //Guppy is just chilling and activly swimming to next destination
-    public void RoamMode()
-    {
-
-    }
-
-    //is just stationary, will conver into roam mode after it finishes.
-    public void IdleMode()
-    {
-
-    }
 
 
 
@@ -131,9 +127,9 @@ public class Parent_Movement : MonoBehaviour
 
     protected void OnDrawGizmosSelected()
     {
-
+        
         //if idle is null, dont show it
-        if (idleTarget == null || idleTarget == new Vector3(0, 0, 0))
+        if (curr_roamTarget == null || curr_roamTarget == new Vector3(0, 0, 0))
         {
             //dont show
         }
@@ -141,14 +137,15 @@ public class Parent_Movement : MonoBehaviour
         {
             //current target for fish
             Gizmos.color = Color.green;
-            Gizmos.DrawWireSphere(idleTarget, targetRadius);
+            Gizmos.DrawWireSphere(curr_roamTarget, targetRoam_ReachedRadius);//current target for fish
         }
-
+        
 
         //current range untill new target
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, newTargetMinLengthRadius);
-
+        Gizmos.DrawWireSphere(transform.position, newTarget_MinDistanceRad);
+        Gizmos.color = Color.black;
+        Gizmos.DrawWireSphere(transform.position, newTarget_MaxDistanceRad);
 
 
     }
