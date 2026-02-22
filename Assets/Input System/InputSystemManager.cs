@@ -46,17 +46,17 @@ public class InputSystemManager : MonoBehaviour, NewControls.IButtonsActions, Ne
 
 
 
-    public void OnLeftClick(InputAction.CallbackContext context)
+    public void OnRightClick(InputAction.CallbackContext context)
     {
 
-        Debug.LogWarning("OnLeftclick in Manager");
+        Debug.LogWarning("Onrightclick in Manager");
         //proxy to make sure that actions are called at the right times
         //filter events by event type
         if (context.phase == InputActionPhase.Performed)
         {
             foreach (var action in ui_Actions)
             {
-                action.OnLeftClick(context);
+                action.OnRightClick(context);
             }
         }
 
@@ -162,7 +162,7 @@ public class InputSystemManager : MonoBehaviour, NewControls.IButtonsActions, Ne
 
     public void OnMiddleClick(InputAction.CallbackContext context) { Debug.Log("Not Implemented"); }
 
-    public void OnRightClick(InputAction.CallbackContext context) { Debug.Log("Not Implemented"); }
+    public void OnLeftClick(InputAction.CallbackContext context) { Debug.Log("Not Implemented"); }
 
     public void OnTrackedDevicePosition(InputAction.CallbackContext context) { Debug.Log("Not Implemented"); }
 

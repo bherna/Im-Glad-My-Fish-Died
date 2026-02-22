@@ -80,16 +80,44 @@ public class Controller_Food : MonoBehaviour
     void Update()
     {
 
-        
 
+        //is the game currently paused
+        if (Controller_EscMenu.instance.paused)
+        {
+            return;
+        }
+
+        //spawn pellet
+        //if we can buy food, spawn it
+
+        if (Input.GetMouseButtonDown(1))
+        { 
+            SpawnFood_Pellet(Vector2.zero, true);/*
+                if (Controller_Wallet.instance.IsAffordable(5))
+                {
+                    SpawnFood_Pellet(CustomVirtualCursor.GetMousePosition_V2(), true);
+
+                    //sub money + visual
+                    Controller_Wallet.instance.SubMoney(5);
+                    Controller_PopUp.instance.CreateTextPopUp(string.Format("- {0}", 5), CustomVirtualCursor.MousePosition);
+                }*//*
+            //is the game currently paused
+            if (Controller_EscMenu.instance.paused)
+            {
+                return;
+            }
+            */
+
+            
+        }
     }
 
 
 
     //used for spawning player placed food pellet
-    public void SpawnFood_Pellet(Vector3 pelletPos, bool removeOld)
+    private void SpawnFood_Pellet(Vector3 pelletPos, bool removeOld)
     {
-
+        Debug.Log("added");
         if (removeOld)
         {
             //check if at max food,
