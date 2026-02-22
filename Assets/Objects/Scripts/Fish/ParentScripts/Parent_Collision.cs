@@ -3,13 +3,12 @@ using UnityEngine;
 public class Parent_Collision : MonoBehaviour
 {
 
-    Parent_SM parent_SM;
+
     Parent_Movement parent_Movement;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
-    protected void Start()
+    protected virtual void Start()
     {
-        parent_SM = GetComponent<Parent_SM>();
         parent_Movement = GetComponent<Parent_Movement>();
     }
 

@@ -42,7 +42,7 @@ public class Guppy_Parent_Movement : Parent_Movement
 
         }
     }
-    /*
+    
     //Guppy is activly heading towards a food pellet
     public void HungryMode()
     {
@@ -67,7 +67,7 @@ public class Guppy_Parent_Movement : Parent_Movement
             UpdatePosition(foodTarget.transform.position, hungry_velocity);
         }
     }
-    */
+    
     //Guppy is just chilling and activly swimming to next destination, 
     //if we make it to our destination then we just find a new one, or we go into idel
     public void RoamMode()
@@ -173,12 +173,7 @@ public class Guppy_Parent_Movement : Parent_Movement
     }
 
 
-
-
-
-
-
-    /*
+    
     private void NewFoodTarget_Tank()
     {
         //new target
@@ -208,5 +203,5 @@ public class Guppy_Parent_Movement : Parent_Movement
 
         //once the fish or the trash can gets to the food, the food destroysSelf(), and foodtarget = null again
     }
-    */
+    
 }

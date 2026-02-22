@@ -132,7 +132,7 @@ GameObject:
   - component: {fileID: 259936021}
   m_Layer: 0
   m_Name: Tanke_Edge_Top
-  m_TagString: Untagged
+  m_TagString: Boundry
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -270,7 +270,7 @@ GameObject:
   - component: {fileID: 393504025}
   m_Layer: 0
   m_Name: Tank_Edge_Left
-  m_TagString: Untagged
+  m_TagString: Boundry
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -633,6 +633,50 @@ MonoBehaviour:
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
   m_Version: 2
+--- !u!1 &1029943823
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1029943824}
+  - component: {fileID: 1029943825}
+  m_Layer: 0
+  m_Name: Controller_Guppy
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1029943824
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1029943823}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1330626553}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1029943825
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1029943823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e74b7e66b21b5944a28ba26dcc3bde2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Controller_Guppy
 --- !u!1 &1092189881
 GameObject:
   m_ObjectHideFlags: 0
@@ -699,6 +743,39 @@ Transform:
   - {fileID: 2113172088}
   - {fileID: 259936020}
   m_Father: {fileID: 1092189882}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1330626552
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1330626553}
+  m_Layer: 0
+  m_Name: Controllers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1330626553
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1330626552}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1029943824}
+  - {fileID: 1849715591}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1423589054
 PrefabInstance:
@@ -987,6 +1064,135 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TankBoundries
   swimRange: {fileID: 1457097160}
   spawnRange: {fileID: 1447681970}
+--- !u!1 &1726489955
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1726489958}
+  - component: {fileID: 1726489957}
+  - component: {fileID: 1726489956}
+  m_Layer: 0
+  m_Name: Event System
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1726489956
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1726489955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01614664b831546d2ae94a42149d80ac, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.UI.InputSystemUIInputModule
+  m_SendPointerHoverToParent: 1
+  m_MoveRepeatDelay: 0.5
+  m_MoveRepeatRate: 0.1
+  m_XRTrackingOrigin: {fileID: 0}
+  m_ActionsAsset: {fileID: -944628639613478452, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_PointAction: {fileID: 1054132383583890850, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_MoveAction: {fileID: 3710738434707379630, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_SubmitAction: {fileID: 2064916234097673511, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_CancelAction: {fileID: -1967631576421560919, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_LeftClickAction: {fileID: 8056856818456041789, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_MiddleClickAction: {fileID: 3279352641294131588, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_RightClickAction: {fileID: 3837173908680883260, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_ScrollWheelAction: {fileID: 4502412055082496612, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_TrackedDevicePositionAction: {fileID: 4754684134866288074, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_TrackedDeviceOrientationAction: {fileID: 1025543830046995696, guid: 91d55a100d778ca4cbf7c9f785c7c6c8, type: 3}
+  m_DeselectOnBackgroundClick: 1
+  m_PointerBehavior: 0
+  m_CursorLockBehavior: 0
+  m_ScrollDeltaPerTick: 6
+--- !u!114 &1726489957
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1726489955}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 76c392e42b5098c458856cdf6ecaaaa1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventSystem
+  m_FirstSelected: {fileID: 0}
+  m_sendNavigationEvents: 1
+  m_DragThreshold: 10
+--- !u!4 &1726489958
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1726489955}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1849715590
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1849715591}
+  - component: {fileID: 1849715592}
+  m_Layer: 0
+  m_Name: Controller_Food
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1849715591
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849715590}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1330626553}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1849715592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1849715590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ebffc8e8db179342b8b6de9f07b760b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Controller_Food
+  foodPellets:
+  - {fileID: 4291011446705309272, guid: 0b5fc3626531ebd4c963ec371faf94a0, type: 3}
+  - {fileID: 4291011446705309272, guid: 634fcd1fb255f0e48a2d11dcc524be99, type: 3}
+  - {fileID: 4291011446705309272, guid: f783d3228e395194aa446569511921d5, type: 3}
+  createSound: {fileID: 0}
+  destroySound: {fileID: 0}
 --- !u!1 &1965202859
 GameObject:
   m_ObjectHideFlags: 0
@@ -1000,7 +1206,7 @@ GameObject:
   - component: {fileID: 1965202862}
   m_Layer: 0
   m_Name: TrashCan
-  m_TagString: Untagged
+  m_TagString: Trash Can
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1138,7 +1344,7 @@ GameObject:
   - component: {fileID: 2113172089}
   m_Layer: 0
   m_Name: Tank_Edge_Right
-  m_TagString: Untagged
+  m_TagString: Boundry
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -1331,3 +1537,5 @@ SceneRoots:
   - {fileID: 6892322627462830104}
   - {fileID: 1423589054}
   - {fileID: 535404015}
+  - {fileID: 1330626553}
+  - {fileID: 1726489958}

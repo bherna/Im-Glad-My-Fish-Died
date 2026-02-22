@@ -73,7 +73,7 @@ public class Guppy_Parent_SM : Parent_SM
                 guppy_Parent_Movement.PanicMode();
                 break;
             case Guppy_States.Hungry:
-                //guppy_Parent_Movement.HungryMode();
+                guppy_Parent_Movement.HungryMode();
                 break;
             case Guppy_States.Roam:
                 guppy_Parent_Movement.RoamMode();
@@ -129,20 +129,24 @@ public class Guppy_Parent_SM : Parent_SM
 
     public void GuppyToState(Guppy_States newState)
     {
-        guppy_current_state = newState;
-        curr_rotationCountdown = Random.Range(range_rotationCountdown[0], range_rotationCountdown[1]);
-    }
-    
+        switch (newState)
+        {
+            case Guppy_States.Hungry:
+                guppy_current_state = newState;
+                break;
 
+            default:
+                guppy_current_state = newState;
+                curr_rotationCountdown = Random.Range(range_rotationCountdown[0], range_rotationCountdown[1]);
+                break;
+        }
+    }
 
 
 
 
     /*
-    public void GuppyToHungry()
-    {
-        guppy_current_state = Guppy_States.hungry;
-    }
+    
     
     public void GuppyToFollow(GameObject schoolTeacher)
     {
