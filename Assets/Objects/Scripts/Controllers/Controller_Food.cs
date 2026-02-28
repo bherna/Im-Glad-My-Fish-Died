@@ -1,3 +1,4 @@
+using Assests.Inputs;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
@@ -91,8 +92,8 @@ public class Controller_Food : MonoBehaviour
         //if we can buy food, spawn it
 
         if (Input.GetMouseButtonDown(1))
-        { 
-            SpawnFood_Pellet(Vector2.zero, true);/*
+        {
+            SpawnFood_Pellet(CustomVirtualCursor.GetMousePosition_V2(), true);/* delete this line on final
                 if (Controller_Wallet.instance.IsAffordable(5))
                 {
                     SpawnFood_Pellet(CustomVirtualCursor.GetMousePosition_V2(), true);
@@ -108,7 +109,7 @@ public class Controller_Food : MonoBehaviour
             }
             */
 
-            
+
         }
     }
 
