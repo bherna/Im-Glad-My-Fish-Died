@@ -5,6 +5,7 @@ public class Guppy_Parent_Stats : Parent_Stats
     //references
     Guppy_Parent_SM guppy_Parent_SM;
     [SerializeField] SpriteRenderer guppySpriteRender;
+    [SerializeField] GameObject guppy_dead;
 
     // --------------------------------- hunger related ----------------------------------------//
     protected float curr_stomach;               //current stomach fill, if this reaches 0, guppy should die of starvation
@@ -21,6 +22,9 @@ public class Guppy_Parent_Stats : Parent_Stats
     protected virtual void Start()
     {
         guppy_Parent_SM = GetComponent<Guppy_Parent_SM>();
+
+
+        StartStomach();
     }
 
 
@@ -38,7 +42,7 @@ public class Guppy_Parent_Stats : Parent_Stats
         //if guppy became hungry
         else if (curr_stomach < threshold_StartHunger && guppy_Parent_SM.guppy_current_state != Guppy_States.Hungry)
         {
-
+            //Debug.Log("GOing to  hunger::::");
             GuppyHungry();
         }
     }
@@ -48,7 +52,7 @@ public class Guppy_Parent_Stats : Parent_Stats
     {
 
         //guppy is now hungry
-        guppy_Parent_SM.GuppyToState(Guppy_States.Hungry);
+        guppy_Parent_SM.GuppyToHungry();
 
         //announce to all pets that we are hungry
         //Controller_Pets.instance.Annoucement_Init(Event_Type.guppyHungry, gameObject);
@@ -94,7 +98,7 @@ public class Guppy_Parent_Stats : Parent_Stats
         }
         */
 
-        guppySpriteRender.material.SetColor("_BaseColor", setColor);
+        guppySpriteRender.color = setColor;
 
     }
 
@@ -123,14 +127,42 @@ public class Guppy_Parent_Stats : Parent_Stats
         }
 
 
-        //only exit hunger mode if the guppy 
-        //return color to fish
-        SetGuppyColor(fullColor);
-        //set our state to idle again
-        guppy_Parent_SM.GuppyToState(Guppy_States.Idle);
+        //also sometimes guppys eat twice, so just update our SM on we eating atleast once this time.
+        guppy_Parent_SM.FinishStateRotation(Guppy_States.Hungry);
 
 
     }
 
+
+    //after running SM.FinishedStateRotation
+    //this gets called from SM if we exit hunger mode successfully
+    public void OnExitHunger()
+    {
+        //only exit hunger mode if the guppy 
+        //return color to fish
+        SetGuppyColor(fullColor);
+    }
+
+
+
+
+
+
+    protected override void Died()
+    {
+        //create a new instance of dead fish
+        Instantiate(guppy_dead, transform.position, Quaternion.identity);
+
+
+        //do this last cause its the destroy method
+        base.Died();
+    }
+
+
+    private void StartStomach()
+    {
+        curr_stomach = Random.Range(15f, 17f);
+        threshold_StartHunger = (int)curr_stomach / 2;
+    }
 
 }

@@ -23,6 +23,6 @@ public class Parent_Stats : MonoBehaviour
     //seperate Dieing out, cause there could be instant kill enemies/pets/other
     protected virtual void Died()
     {
-
+        Destroy(gameObject);
     }
 }

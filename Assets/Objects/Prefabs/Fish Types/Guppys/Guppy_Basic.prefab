@@ -105,6 +105,7 @@ GameObject:
   - component: {fileID: 2249280942242289194}
   - component: {fileID: 3133813274145268251}
   - component: {fileID: 4324632272489423363}
+  - component: {fileID: 7058715012585722557}
   m_Layer: 0
   m_Name: Guppy_Basic
   m_TagString: Guppy
@@ -214,10 +215,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Basic_Movement
   sprite_transform: {fileID: 2148854464139460507}
-  curr_roam_velocity: 1
-  range_roam_veloocity:
-  - 0.4
-  - 1.5
 --- !u!114 &3133813274145268251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -230,6 +227,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 05c991c7bdbf68944b3d16bb2b86c40e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Basic_SM
+  <guppy_current_state>k__BackingField: 2
   curr_rotationCountdown: 1
 --- !u!114 &4324632272489423363
 MonoBehaviour:
@@ -243,3 +241,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 07c31a6165ecbf847885b357ea3e8518, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Parent_Collision
+--- !u!114 &7058715012585722557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4642107791116041977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e24c03a4fa46b409c25516c9a53bdd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Guppy_Parent_Stats
+  guppySpriteRender: {fileID: 9091333340232359683}
+  guppy_dead: {fileID: 1350169469975769362, guid: 57cec01f27ccbed419fc6637cba08b42, type: 3}
+  curr_stomach: 0
+  threshold_StartHunger: 0

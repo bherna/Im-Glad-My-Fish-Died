@@ -17,7 +17,7 @@ public class Guppy_Parent_Collision : Parent_Collision
 
     protected override void OnTriggerStay2D(Collider2D other)
     {
-
+        //this has tank edge stuff
         base.OnTriggerStay2D(other);
         
 
@@ -28,8 +28,9 @@ public class Guppy_Parent_Collision : Parent_Collision
             //eat + destroy obj
             var foodscript = other.GetComponent<Drop_Food>();
             guppy_Parent_Stats.GuppyEated(foodscript.Get_foodType());
-            Controller_Food.instance.TrashThisFood_ByGameObject(other.gameObject); //probably should be last since this is a DESTROY func
+            other.GetComponent<Drop_Food>().OnFoodEated(); //probably should be last since this is a DESTROY func
         }
-        
+
+
     }
 }

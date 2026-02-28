@@ -18,7 +18,7 @@ public class Drop_Parent : MonoBehaviour
 
 
     //dont want to put anyting here cause different drops will do different things on touching trash can
-    public virtual void OnTrashDrop() { }
+    protected virtual void OnTrashDrop() { }
 
 
 

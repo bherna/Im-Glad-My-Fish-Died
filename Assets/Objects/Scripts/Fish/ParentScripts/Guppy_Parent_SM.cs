@@ -24,11 +24,13 @@ public class Guppy_Parent_SM : Parent_SM
 {
 
     // --------------------------------- gubby script reference --------------------------------- 
-    protected Guppy_Parent_Movement guppy_Parent_Movement; //is auto added, no need to manually add
+    protected Guppy_Parent_Movement guppy_Parent_Movement; //in start method
+    protected Guppy_Parent_Stats guppy_Parent_Stats; //in start method
 
 
 
     //variables
+    [field: SerializeField]
     public Guppy_States guppy_current_state { get; private set; } = Guppy_States.Roam;
 
     //State rotation trakcer
@@ -42,6 +44,7 @@ public class Guppy_Parent_SM : Parent_SM
     protected void Start()
     {
         guppy_Parent_Movement = GetComponent<Guppy_Parent_Movement>();
+        guppy_Parent_Stats = GetComponent<Guppy_Parent_Stats>();
     }
 
 
@@ -115,6 +118,15 @@ public class Guppy_Parent_SM : Parent_SM
                     GuppyToState(Guppy_States.Idle);
                     break;
 
+                case Guppy_States.Hungry:
+                    guppy_Parent_Stats.OnExitHunger();
+                    GuppyToState(Guppy_States.Roam);
+                    break;
+
+
+
+
+
                 default:
                     Debug.Log("Case has not been added yet.");
                     break;
@@ -127,12 +139,14 @@ public class Guppy_Parent_SM : Parent_SM
 
     }
 
-    public void GuppyToState(Guppy_States newState)
+    private void GuppyToState(Guppy_States newState)
     {
         switch (newState)
         {
+            //we either eat once or twice, dont really need to eat that taht much
             case Guppy_States.Hungry:
                 guppy_current_state = newState;
+                curr_rotationCountdown = Random.Range(1,3);
                 break;
 
             default:
@@ -144,16 +158,30 @@ public class Guppy_Parent_SM : Parent_SM
 
 
 
+    //dont really have a good way of doing these so we're just going to do this instead
+    //we call a state change here manually, mostly non-pure movement related modes will call these state changes
+    //send our guppy into hunger mode, 
+    public void GuppyToHungry()
+    {
+        GuppyToState(Guppy_States.Hungry);
+    }
+
 
     /*
-    
     
     public void GuppyToFollow(GameObject schoolTeacher)
     {
         StartCoroutine(guppytofollow(schoolTeacher));
     }
 
-    private IEnumerator guppytofollow(GameObject schoolTeacher)
+
+
+
+
+
+
+
+    private IEnumerator Guppytofollow(GameObject schoolTeacher)
     {
 
         float randTime = Random.Range(0f, 1.7f);

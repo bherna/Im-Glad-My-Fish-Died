@@ -15,7 +15,7 @@ public class Drop_Food : Drop_Parent
     }
 
 
-    public override void OnTrashDrop()
+    protected override void OnTrashDrop()
     {
         base.OnTrashDrop();
 
@@ -44,4 +44,14 @@ public class Drop_Food : Drop_Parent
         Controller_Food.instance.TrashThisFood_ByGameObject(gameObject);
     }
 
+
+
+
+    //this function is different than ontrashdrop but is essentially the same, 
+    //mostly used by other fish to eat this food
+    public void OnFoodEated()
+    {
+        //event to food controller
+        Controller_Food.instance.TrashThisFood_ByGameObject(gameObject);
+    }
 }

@@ -8,6 +8,7 @@ TagManager:
   - Boundry
   - Trash Can
   - Food
+  - Guppy Dead
   layers:
   - Default
   - TransparentFX
