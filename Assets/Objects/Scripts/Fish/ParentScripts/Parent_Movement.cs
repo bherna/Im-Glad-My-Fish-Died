@@ -24,10 +24,11 @@ public class Parent_Movement : MonoBehaviour
     protected float[] range_roam_veloocity = new float[2] { 0.4f, 1.5f };
 
 
-    protected bool isRotating;                  //used in determinig if we are activly rotating the fish
-    protected Quaternion newRotationDestin;     //the new angle we plan on having this fish turn towards
-    protected float curr_RotationSeconds = 0;   //used in lerp
-    protected Quaternion start_Rotation;        //Keeps track of the start rotation angle for lerp
+    protected bool isRotating;                                                             //used in determinig if we are activly rotating the fish
+    protected Quaternion newRotationDestin = Quaternion.Euler(Vector3.zero);               //the new angle we plan on having this fish turn towards
+    protected float curr_RotationSeconds = 0;                                              //used in lerp
+    protected Quaternion start_Rotation = Quaternion.Euler(Vector3.zero);                  //Keeps track of the start rotation angle for lerp
+    protected const float time_RotationFinish = 0.7f;                                      //how long it takes for this fish to finish rotating
 
     //references
     protected Rigidbody2D rb;
@@ -54,6 +55,8 @@ public class Parent_Movement : MonoBehaviour
         {
             return;
         }
+
+        SmoothRotation();
     }
 
 
@@ -71,7 +74,6 @@ public class Parent_Movement : MonoBehaviour
         var dir = (target_pos - transform.position).normalized;
         rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Impulse);
 
-        SmoothRotation();
     }
 
 
