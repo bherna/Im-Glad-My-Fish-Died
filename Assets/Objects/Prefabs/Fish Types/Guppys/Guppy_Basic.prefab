@@ -81,12 +81,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 7482667652216324306, guid: 311925a002f4447b3a28927169b83ea6, type: 3}
+  m_Sprite: {fileID: -2163874977482501989, guid: a4043c0aa5f3b0f48ad2824e27e62379, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 5.12, y: 2.56}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -255,5 +255,3 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Parent_Stats
   guppySpriteRender: {fileID: 9091333340232359683}
   guppy_dead: {fileID: 1350169469975769362, guid: 57cec01f27ccbed419fc6637cba08b42, type: 3}
-  curr_stomach: 0
-  threshold_StartHunger: 0

@@ -161,7 +161,7 @@ public class Guppy_Parent_Stats : Parent_Stats
 
     private void StartStomach()
     {
-        curr_stomach = Random.Range(15f, 17f);
+        curr_stomach = 100*Random.Range(15f, 17f);
         threshold_StartHunger = (int)curr_stomach / 2;
     }
 

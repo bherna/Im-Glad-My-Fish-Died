@@ -25,6 +25,9 @@ public class Guppy_Parent_Movement : Parent_Movement
 
 
     //Guppy will just do a roam mode but just fast and consistent
+    //A guppy has to be either forced out of panic, cause it doesnt have a way to exit
+    //compare to roam mode, theres a missing line in the else logic that'll keep a gupppy stuck in this state.
+    //its also used in hunger mode to simulate missing food
     public void PanicMode()
     {
         var distance = Vector3.Distance(curr_roamTarget, transform.position);
@@ -42,6 +45,7 @@ public class Guppy_Parent_Movement : Parent_Movement
 
         }
     }
+
     
     //Guppy is activly heading towards a food pellet
     public void HungryMode()
@@ -56,8 +60,8 @@ public class Guppy_Parent_Movement : Parent_Movement
         //if food target is still null
         if (foodTarget == null)
         {
-            //run idel mode
-            IdleMode();
+            //run a form of panic mode
+            PanicMode();
         }
         else
         {
@@ -112,8 +116,7 @@ public class Guppy_Parent_Movement : Parent_Movement
 
     protected override void NewRandomIdleTarget_Tank(Guppy_States targetType = Guppy_States.Roam)
     {
-        //since new target
-        NewTargetVariables();
+        
 
         //tanke dememsions
         float[] swimDem = TankBoundries.instance.swim_arr;
@@ -149,8 +152,9 @@ public class Guppy_Parent_Movement : Parent_Movement
             while (Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) < newTarget_MinDistanceRad);
             
         }
-        
-        
+
+        //since new target
+        NewTargetVariables(curr_roamTarget);
     }
 
 
@@ -176,8 +180,6 @@ public class Guppy_Parent_Movement : Parent_Movement
     
     private void NewFoodTarget_Tank()
     {
-        //new target
-        NewTargetVariables();
 
         //find food to followe 
         var closestDis = float.PositiveInfinity;
@@ -202,6 +204,10 @@ public class Guppy_Parent_Movement : Parent_Movement
         foodTarget = tempTarget;
 
         //once the fish or the trash can gets to the food, the food destroysSelf(), and foodtarget = null again
+
+
+        //new target
+        NewTargetVariables(foodTarget.transform.position);
     }
     
 }
