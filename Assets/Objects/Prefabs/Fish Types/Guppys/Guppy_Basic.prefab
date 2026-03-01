@@ -142,7 +142,7 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 0.6
-  m_LinearDamping: 1
+  m_LinearDamping: 1.7
   m_AngularDamping: 2
   m_GravityScale: 0
   m_Material: {fileID: 0}
@@ -215,6 +215,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Basic_Movement
   sprite_transform: {fileID: 2148854464139460507}
+  curr_roam_velocity: 3
 --- !u!114 &3133813274145268251
 MonoBehaviour:
   m_ObjectHideFlags: 0

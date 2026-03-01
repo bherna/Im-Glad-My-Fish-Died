@@ -41,6 +41,7 @@ public class Guppy_Parent_Movement : Parent_Movement
         //get new point once fish reaches it
         else
         {
+            
             NewRandomIdleTarget_Tank();
 
         }
@@ -88,8 +89,8 @@ public class Guppy_Parent_Movement : Parent_Movement
         else
         {
             //send a message to the State machine that we finished with this rotation
+            NewRandomIdleTarget_Tank(Guppy_States.Roam);
             guppy_SM.FinishStateRotation(Guppy_States.Roam);
-            NewRandomIdleTarget_Tank();
 
         }
     }
@@ -108,9 +109,8 @@ public class Guppy_Parent_Movement : Parent_Movement
         else
         {
             //send a message to the State machine that we finished with this rotation
+            NewRandomIdleTarget_Tank(Guppy_States.ClusterRoam);     //this first so the resetrotation happens second
             guppy_SM.FinishStateRotation(Guppy_States.ClusterRoam);
-            NewRandomIdleTarget_Tank(Guppy_States.ClusterRoam);
-
         }
     }
 
@@ -163,8 +163,6 @@ public class Guppy_Parent_Movement : Parent_Movement
     //so it'll be IdleMode(); Gotoidle(); in the same func or what ever
     public void IdleMode()
     {
-        //set our rotation to zero
-
 
         //wait
         curr_SecsLeft -= Time.deltaTime;
@@ -219,7 +217,7 @@ public class Guppy_Parent_Movement : Parent_Movement
 
 
 
-    //were just going to build off of that one rotation func from parent
+    //Used in reseting rotation to face (1.0) or (-1,0)
     public void ResetRotation()
     {
         if(transform.rotation.y != 0)
@@ -231,4 +229,5 @@ public class Guppy_Parent_Movement : Parent_Movement
             StartRotation(Quaternion.Euler(Vector3.zero));
         }
     }
+
 }

@@ -151,12 +151,21 @@ public class Guppy_Parent_SM : Parent_SM
 
             //idle state, we have to make sure we reset this guppys rotation to be (1,0)
             case Guppy_States.Idle:
-                guppy_Parent_Movement.ResetRotation();
-                goto default;
-
-            default:
+                Debug.Log("runnin");
                 guppy_current_state = newState;
                 curr_rotationCountdown = Random.Range(range_rotationCountdown[0], range_rotationCountdown[1]);
+                guppy_Parent_Movement.ResetRotation();
+                break;
+
+            case Guppy_States.ClusterRoam:
+            case Guppy_States.Roam:
+                guppy_current_state = newState;
+                curr_rotationCountdown = Random.Range(range_rotationCountdown[0], range_rotationCountdown[1]);
+                guppy_Parent_Movement.NewTargetVariables(guppy_Parent_Movement.curr_roamTarget); 
+                break;
+
+            default:
+                Debug.Log("This state change is not added yet");
                 break;
         }
     }

@@ -9,21 +9,19 @@ public class Parent_Movement : MonoBehaviour
 
     // --------------------------------- Sprite ---------------------------------
     [SerializeField] protected Transform sprite_transform;   //get transform of pet sprite
-    protected float startTime;
-    protected float h_turningSpeed = 1.5f;
-    protected float y_angle = 0;
 
 
     // --------------------------------- Targeting ---------------------------------
-    protected Vector3 curr_roamTarget;
-    protected float targetRoam_ReachedRadius = 0.5f;        //used in determining if we have reached our destination
-    protected float targetClusterRoam_ReachedRadius = 0.1f; //same as targetRoam, but for clusterRoam
-    protected float newTarget_MinDistanceRad = 3;           //the minimum distance away from our fish current position, Used in Roam, 
-    protected float newTarget_MaxDistanceRad = 2;           //the max distance from the fiish at curr position, used in cluster roam
-    protected float curr_roam_velocity = 1;
-    protected float[] range_roam_veloocity = new float[2] { 0.4f, 1.5f };
+    public Vector3 curr_roamTarget { get; protected set; }
+    protected float targetRoam_ReachedRadius = 0.5f;            //used in determining if we have reached our destination
+    protected float targetClusterRoam_ReachedRadius = 0.3f;     //same as targetRoam, but for clusterRoam
+    protected float newTarget_MinDistanceRad = 3;               //the minimum distance away from our fish current position, Used in Roam, 
+    protected float newTarget_MaxDistanceRad = 2;               //the max distance from the fiish at curr position, used in cluster roam
+    protected float curr_roam_velocity = 3;
+    protected float[] range_roam_veloocity = new float[2] { 0.7f, 3.3f };
 
 
+    // --------------------------------- Rotating ---------------------------------
     protected bool isRotating;                                                             //used in determinig if we are activly rotating the fish
     protected Quaternion newRotationDestin = Quaternion.Euler(Vector3.zero);               //the new angle we plan on having this fish turn towards
     protected float curr_RotationSeconds = 0;                                              //used in lerp
@@ -43,7 +41,6 @@ public class Parent_Movement : MonoBehaviour
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        startTime = Time.time;
     }
 
 
@@ -104,12 +101,9 @@ public class Parent_Movement : MonoBehaviour
 
 
 
-    //whenever a new target is set we reset our sprite variables
-    protected virtual void NewTargetVariables(Vector3 newTarget)
+    //whenever a new target is set we reset some variables
+    public virtual void NewTargetVariables(Vector3 newTarget)
     {
-        //reset our turning time for lerp
-        startTime = Time.time;
-
 
         //new random velocity
         curr_roam_velocity = Random.Range(range_roam_veloocity[0], range_roam_veloocity[1]);
@@ -193,6 +187,10 @@ public class Parent_Movement : MonoBehaviour
     //its just a lerp for rotating the fish towards a new angle rotation vector3, part of the UPdate call
     private void SmoothRotation()
     {
+        //if we dont need to run this then skip
+        if (!isRotating) { return; }
+
+
         transform.rotation = Quaternion.Lerp(start_Rotation, newRotationDestin, curr_RotationSeconds);
         curr_RotationSeconds += Time.deltaTime;
 
