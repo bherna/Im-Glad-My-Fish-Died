@@ -163,8 +163,14 @@ public class Guppy_Parent_Movement : Parent_Movement
     //so it'll be IdleMode(); Gotoidle(); in the same func or what ever
     public void IdleMode()
     {
+        //set our rotation to zero
+
+
+        //wait
         curr_SecsLeft -= Time.deltaTime;
 
+
+        //did we finish waiting
         if(curr_SecsLeft <= 0)
         {
             //transfer
@@ -210,4 +216,19 @@ public class Guppy_Parent_Movement : Parent_Movement
         NewTargetVariables(foodTarget.transform.position);
     }
     
+
+
+
+    //were just going to build off of that one rotation func from parent
+    public void ResetRotation()
+    {
+        if(transform.rotation.y != 0)
+        {
+            StartRotation(Quaternion.Euler(new Vector3(0, 180, 0)));
+        }
+        else
+        {
+            StartRotation(Quaternion.Euler(Vector3.zero));
+        }
+    }
 }

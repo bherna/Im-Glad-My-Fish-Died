@@ -1,4 +1,6 @@
 
+using System.Collections;
+using System.Threading;
 using UnityEngine;
 
 
@@ -22,7 +24,10 @@ public class Parent_Movement : MonoBehaviour
     protected float[] range_roam_veloocity = new float[2] { 0.4f, 1.5f };
 
 
-    protected bool flipped;   //the fish flip starts out false, in other words facing (1,0)
+    protected bool isRotating;                  //used in determinig if we are activly rotating the fish
+    protected Quaternion newRotationDestin;     //the new angle we plan on having this fish turn towards
+    protected float curr_RotationSeconds = 0;   //used in lerp
+    protected Quaternion start_Rotation;        //Keeps track of the start rotation angle for lerp
 
     //references
     protected Rigidbody2D rb;
@@ -66,8 +71,8 @@ public class Parent_Movement : MonoBehaviour
         var dir = (target_pos - transform.position).normalized;
         rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Impulse);
 
-
-}
+        SmoothRotation();
+    }
 
 
 
@@ -107,33 +112,14 @@ public class Parent_Movement : MonoBehaviour
         //new random velocity
         curr_roam_velocity = Random.Range(range_roam_veloocity[0], range_roam_veloocity[1]);
 
-
-
-        //turning code really
-        //now we create a direction that this guppyy needs to reach
-        //
-
-        //also need to update their flip
+        //now we update our rotation, kinda long to just throw in here
+        UpdateRotation(newTarget);
+    }
 
 
 
-
-        /**
-         
-        //Set the Quaternion rotation from the GameObject's position to the mouse position
-        m_MyQuaternion.SetFromToRotation(Vector2.zero, new Vector2(1,0));
-
-        //Rotate the GameObject towards the mouse position
-        transform.rotation = m_MyQuaternion* transform.rotation;
-       
-
-        transform.Rotate(new Vector3(0, 0, 1));
-        transform.rotation = Quaternion.Euler(new Vector3(0, 0, 10));
-          */
-
-
-
-
+    private void UpdateRotation(Vector3 newTarget)
+    {
         //Set the Quaternion rotation to face towards the target
         //this is pretty complicated to explain, but essentially, 
         /*
@@ -159,8 +145,10 @@ public class Parent_Movement : MonoBehaviour
          *  - the math on the other hand is straight forwad, if -x, we flip and we mul -1 on dir.x directly
             - if we have -y we have to do an abs() on our dir.y variable to get the degree, then we mul -1 on the entire func
         */
-        Vector3 newAngle = new Vector3();
-        var dir = newTarget - transform.position;
+
+        Vector3 newAngle = new Vector3(); //just a thing to hold our new angle we are swithching too
+        var dir = newTarget - transform.position; //this is the new directional vector that this fish is swimming towards
+
 
         //#2 case
         if (dir.x < 0)
@@ -168,21 +156,21 @@ public class Parent_Movement : MonoBehaviour
             //first flip the image to its facing the other way
             newAngle.x = 0;
             newAngle.y = 180;
-            newAngle.z = Mathf.Atan2(dir.y, -1*dir.x) * (180 / Mathf.PI);
+            newAngle.z = Mathf.Atan2(dir.y, -1 * dir.x) * (180 / Mathf.PI);
         }
         //#3 case
         else if (dir.x < 0 && dir.y < 0)
         {
             newAngle.x = 0;
             newAngle.y = 180;
-            newAngle.z = -1*Mathf.Atan2(-1*dir.y, -1*dir.x) * (180 / Mathf.PI);
+            newAngle.z = -1 * Mathf.Atan2(-1 * dir.y, -1 * dir.x) * (180 / Mathf.PI);
         }
         //#4 case
         else if (dir.y < 0)
         {
             newAngle.x = 0;
             newAngle.y = 0;
-            newAngle.z = -1*Mathf.Atan2(-1*dir.y, dir.x) * (180 / Mathf.PI);
+            newAngle.z = -1 * Mathf.Atan2(-1 * dir.y, dir.x) * (180 / Mathf.PI);
         }
         //normal case, #1
         else
@@ -193,24 +181,49 @@ public class Parent_Movement : MonoBehaviour
 
         }
 
-        transform.rotation = Quaternion.Euler(newAngle);
+        //transform.rotation = Quaternion.Euler(newAngle);
+        StartRotation(Quaternion.Euler(newAngle));
     }
 
 
-    //used in updating which way our fish will face
-    private void UpdateFacing(bool newFace)
+
+
+    //its just a lerp for rotating the fish towards a new angle rotation vector3, part of the UPdate call
+    private void SmoothRotation()
     {
-        //essetially, if our bool i new, we update the way its facing to match the new direction we face
-        if (flipped != newFace)
+        transform.rotation = Quaternion.Lerp(start_Rotation, newRotationDestin, curr_RotationSeconds);
+        curr_RotationSeconds += Time.deltaTime;
+
+        if(curr_RotationSeconds > 1)
         {
-            flipped = newFace;
-            Vector3 theScale  = gameObject.transform.localScale;
-            theScale.x *= -1;
-            gameObject.transform.localScale = theScale;
+            //stop doing this
+            isRotating = false;
         }
     }
 
-   
+    //dont know how to send a message to the UPdate that we are starting a rotation
+    protected void StartRotation(Quaternion newRotation)
+    {
+        //if we were already working on a rotation,
+        //we want to set it to not clash with the next one about to happend
+        if (isRotating) 
+        {
+            //hard set our transform to our old final rotation
+            transform.rotation = newRotationDestin;
+
+        }
+
+
+        //get a new start rotation
+        curr_RotationSeconds = 0;
+        start_Rotation = transform.rotation; 
+        isRotating = true;
+        newRotationDestin = newRotation;
+
+        
+    }
+
+
 
 
     //when we hit an edge just head back to center of tank, easiest way to solve for now

@@ -149,6 +149,11 @@ public class Guppy_Parent_SM : Parent_SM
                 curr_rotationCountdown = Random.Range(1,3);
                 break;
 
+            //idle state, we have to make sure we reset this guppys rotation to be (1,0)
+            case Guppy_States.Idle:
+                guppy_Parent_Movement.ResetRotation();
+                goto default;
+
             default:
                 guppy_current_state = newState;
                 curr_rotationCountdown = Random.Range(range_rotationCountdown[0], range_rotationCountdown[1]);
