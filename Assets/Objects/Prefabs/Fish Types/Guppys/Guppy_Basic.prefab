@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2148854464139460507}
-  - component: {fileID: 9091333340232359683}
+  - component: {fileID: 1321594995783764174}
   m_Layer: 0
   m_Name: Sprite
   m_TagString: Untagged
@@ -25,14 +25,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1345923717070086916}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: 0, y: 0.12152286, z: 0, w: 0.99258864}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.17, y: 0.17, z: 0.17}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 492696088373768033}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &9091333340232359683
+  m_LocalEulerAnglesHint: {x: 0, y: 13.96, z: 0}
+--- !u!212 &1321594995783764174
 SpriteRenderer:
   serializedVersion: 2
   m_ObjectHideFlags: 0
@@ -81,12 +81,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -2163874977482501989, guid: a4043c0aa5f3b0f48ad2824e27e62379, type: 3}
+  m_Sprite: {fileID: 7332644913574127434, guid: 74baf41d40ec6584ea8f63ad94325eb4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 5.12, y: 2.56}
+  m_Size: {x: 11.34, y: 6.91}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -142,9 +142,9 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 0.6
-  m_LinearDamping: 1.7
+  m_LinearDamping: 0.5
   m_AngularDamping: 2
-  m_GravityScale: 0
+  m_GravityScale: 0.0035
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
@@ -190,7 +190,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0.23, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -200,7 +200,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 1.05, y: 0.63}
   m_EdgeRadius: 0
 --- !u!114 &2249280942242289194
 MonoBehaviour:
@@ -214,8 +214,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f8c5c8aa56313284198cfb6892fbe7d3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Basic_Movement
-  sprite_transform: {fileID: 2148854464139460507}
-  curr_roam_velocity: 3
+  sprite_transform: {fileID: 0}
+  curr_BurstVelocity: 3
+  range_BurstVeloocity:
+  - 0.68
+  - 2.43
+  baseVelocity: 0.1
+  curr_ConstVelocity: 3
+  range_ConstVeloocity:
+  - 0.68
+  - 2.43
+  curr_SwimDegree: 0
+  curr_SwimSpdMax: 20
+  TankBoundryBounceStr: 0.25
 --- !u!114 &3133813274145268251
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -254,5 +265,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c0e24c03a4fa46b409c25516c9a53bdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Guppy_Parent_Stats
-  guppySpriteRender: {fileID: 9091333340232359683}
+  guppySpriteRender: {fileID: 1321594995783764174}
   guppy_dead: {fileID: 1350169469975769362, guid: 57cec01f27ccbed419fc6637cba08b42, type: 3}

@@ -3,6 +3,11 @@ using System.Collections;
 using System.Threading;
 using UnityEngine;
 
+//just a quick run down on them
+//Constant is used whenever our fish wants to move at a constat pace around the tank
+//burst is for when they want to move with more of a dashing motion
+//Idle , we aren't moving, but is useful to have for rotation
+public enum MovementType { Constant, Burst, Idle};
 
 public class Parent_Movement : MonoBehaviour
 {
@@ -13,29 +18,52 @@ public class Parent_Movement : MonoBehaviour
 
     // --------------------------------- Targeting ---------------------------------
     public Vector3 curr_roamTarget { get; protected set; }
-    protected float targetRoam_ReachedRadius = 0.5f;            //used in determining if we have reached our destination
-    protected float targetClusterRoam_ReachedRadius = 0.3f;     //same as targetRoam, but for clusterRoam
-    protected float newTarget_MinDistanceRad = 3;               //the minimum distance away from our fish current position, Used in Roam, 
-    protected float newTarget_MaxDistanceRad = 2;               //the max distance from the fiish at curr position, used in cluster roam
-    protected float curr_roam_velocity = 3;
-    protected float[] range_roam_veloocity = new float[2] { 0.7f, 3.3f };
+    protected float targetRoam_ReachedRadius = 0.5f;                                    //used in determining if we have reached our destination
+    protected float targetClusterRoam_ReachedRadius = 0.3f;                             //same as targetRoam, but for clusterRoam
+    protected float newRoamTarget_MinDistanceRad = 3;                                   //the minimum distance away from our fish current position, Used in Roam, 
+    protected float[] newClusterTarget_RangeDisRad = new float[2] { 1.5f, 2.1f };       //the max distance from the fiish at curr position, used in cluster roam
 
 
-    // --------------------------------- Rotating ---------------------------------
-    protected bool isRotating;                                                             //used in determinig if we are activly rotating the fish
-    protected Quaternion newRotationDestin = Quaternion.Euler(Vector3.zero);               //the new angle we plan on having this fish turn towards
-    protected float curr_RotationSeconds = 0;                                              //used in lerp
-    protected Quaternion start_Rotation = Quaternion.Euler(Vector3.zero);                  //Keeps track of the start rotation angle for lerp
-    protected const float time_RotationFinish = 0.7f;                                      //how long it takes for this fish to finish rotating
+    // --------------------------------- Burst Velocity ---------------------------------
+    protected float curr_BurstVelocity = 3;                                    //current rotation burst speed,
+    protected float[] range_BurstVeloocity = new float[2] { 0.68f, 2.43f };    //used in getting anew curr_burst velocity
+    protected float curr_velFalloff = 0;                                    //our current lerp secconds
+    protected float baseVelocity = 0.1f;                                       //the slowest a fish will go while using burst movement
+
+
+    //--------------------------------- Const Velocity ---------------------------------
+    protected float curr_ConstVelocity = 3;                                        //current constant velocity
+    protected float[] range_ConstVeloocity = new float[2] { 0.8f, 1.5f };          //used in getting a new curr_const vel
+
+
+    // --------------------------------- Turning ---------------------------------
+    protected bool isTurning;                                                           //used in determinig if we are activly rotating the fish
+    protected Quaternion start_TurningVector = Quaternion.Euler(Vector3.zero);          //Keeps track of the start rotation angle for lerp
+    protected Quaternion end_TurningVector = Quaternion.Euler(Vector3.zero);            //the new angle we plan on having this fish turn towards
+    protected float curr_RotationSeconds = 0;                                           //used in lerp
+    
+    protected float total_secsTurnTime = 0.5f;                                          //how long it takes for this fish to finish turning around
+    protected float[] total_TurnTimeCount = new float[3] { 0.5f, 0.2f, 0.05f };         //and its differ turning speeds for: [roam, cluster, panic]
+
+
+    // --------------------------------- Swimming ---------------------------------
+    //these ones are for the animation side of swimming, not actually the movement 
+    public const float max_SwimDegree = 10;                         //how much this fish can turn its body while swimming
+    public float curr_SwimDegree = 0;                               //what is this fish current turn'd degree
+    protected float[] range_SwimSPD = new float[2] { 47, 60 };      //used in getting a new swim speed
+    public float curr_SwimSpdMax = 20;                              //how fast this fish does its swimming animation,
+    protected float curr_SwimAnimationSpeed = 0;                    //this depending on movementtype will change
+    private float curr_SwimmDir = 1;                                //used in updating the direction its either 1 or -1
+
+    //doesn't really have a section to be put under, but this is our linear dampening for this fish
+    //this one is more of a const cause its only going to get referenced/used to set 
+    protected const float linearDamp = 0.5f;
 
     //references
     protected Rigidbody2D rb;
 
-    //used in update position function for determining if we are going to use addforce or just update litteral position
-    protected bool IStatic = true;
-    //same as above but for part 2 of code: profile vs non profiled viewd fish code
-    protected bool IProfile = true;
-    protected int TankBoundryBounceStr = 15;
+    //well, it does what it says really, every times this fish touches a boundry it bouces off with this addforce str
+    public float TankBoundryBounceStr = 0.25f;
 
 
     protected virtual void Start()
@@ -53,68 +81,149 @@ public class Parent_Movement : MonoBehaviour
             return;
         }
 
-        SmoothRotation();
+        //SmootTurnRotation();
     }
 
 
 
 
     //basic way fish move
-    protected void UpdatePosition(Vector3 target_pos, float current_Vel)
+    protected void UpdatePosition(Vector3 target_pos, float current_Vel, MovementType moveType)
     {
+        //check here if we are currently turning
+        if (SmootTurnRotation()) { return; }
 
-        //if the guppy is static use this one
-        //transform.position = Vector2.MoveTowards(transform.position, target_pos, current_Vel * Time.deltaTime);
-
-      
-        //this one uses rb, so make sure its attached
+        //will always need a direction
         var dir = (target_pos - transform.position).normalized;
-        rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Impulse);
 
+        switch (moveType)
+        {
+
+            //this is not used, this is just basic movement towards object without rigidbody
+            //transform.position = Vector2.MoveTowards(transform.position, target_pos, current_Vel * Time.deltaTime);
+
+
+            //all this does is create a constant velocity towards the target
+            case (MovementType.Constant):
+                rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Impulse);
+                break;
+
+            
+            //takes current curr_velocity as max velocity
+            //then we use a lerp to slowly decrease to a base movement speed
+            case (MovementType.Burst):
+
+                //linear falloff so far
+                //float newVel = Mathf.Lerp(curr_BurstVelocity, baseVelocity, curr_velFalloff);
+                //curr_velFalloff += Time.deltaTime;
+                
+                //if we finish this burst, get a new velocity 
+                if(Mathf.Abs(rb.linearVelocityX * rb.linearVelocityY) < baseVelocity) 
+                { 
+                    NewBurstVariables(); 
+                    rb.AddForce(dir * curr_BurstVelocity, ForceMode2D.Impulse);
+                }
+                break;
+
+
+            case (MovementType.Idle):
+                //do nothing
+                break;
+
+
+            default:
+                Debug.Log("Dont know how you got here");
+                break;
+        }
     }
 
 
 
+
+
+
+
     //create a new idle target, that is within the tank dimensions and outside the fish range.
-    protected virtual void NewRandomIdleTarget_Tank(Guppy_States targetType = Guppy_States.Roam)
+    protected virtual void NewRandomIdleTarget_Tank(Guppy_States guppy_state = Guppy_States.Roam)
     {
 
         //tanke dememsions
         float[] swimDem = TankBoundries.instance.swim_arr;
 
-        //get a new target area thats far from this guppy
-        while (Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) < newTarget_MinDistanceRad)
+        //run this once atleast cause it'll just think we found a good enough target cause we are already on it
+        do
         {
 
             curr_roamTarget = new Vector3(
                 Random.Range(swimDem[0], swimDem[1]),
                 Random.Range(swimDem[2], swimDem[3]),
-                0
-            );
+                0);
         }
-
+        //get a new target area thats far from this guppy
+        while (Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) < newRoamTarget_MinDistanceRad);
 
         //since new target
         //doo last since some variables update based on new target
-        NewTargetVariables(curr_roamTarget);
+        NewTargetVariables(curr_roamTarget, guppy_state);
     }
 
 
 
     //whenever a new target is set we reset some variables
-    public virtual void NewTargetVariables(Vector3 newTarget)
+    //this one is specific to a completely new rotation, 
+    public virtual void NewTargetVariables(Vector3 newTarget, Guppy_States guppy_State)
     {
+        //just for clear-ity, im just gonna put this in here
+        switch (guppy_State)
+        {
+            case Guppy_States.Roam:
+                total_secsTurnTime = total_TurnTimeCount[0];
+                break;
 
-        //new random velocity
-        curr_roam_velocity = Random.Range(range_roam_veloocity[0], range_roam_veloocity[1]);
+            case Guppy_States.ClusterRoam:
+                total_secsTurnTime = total_TurnTimeCount[1];
+                break;
 
-        //now we update our rotation, kinda long to just throw in here
-        UpdateRotation(newTarget);
+            case Guppy_States.Panic:
+                total_secsTurnTime = total_TurnTimeCount[2];
+                break;
+
+            default:
+                //dont care
+                break;
+        }
+
+        //new random velociies (dont care what type it is, just get two new ones)
+        curr_BurstVelocity = Random.Range(range_BurstVeloocity[0], range_BurstVeloocity[1]);
+        curr_ConstVelocity = Random.Range(range_ConstVeloocity[0], range_ConstVeloocity[1]);
+
+        //now we update our rotation, kinda long to just throw in 
+        GetSetNewTurnRotation(newTarget);
+
     }
 
 
 
-    private void UpdateRotation(Vector3 newTarget)
+
+
+    //this is used in reseting our burst variables, 
+    private void NewBurstVariables()
+    {
+        //new random velocity
+        curr_BurstVelocity = Random.Range(range_BurstVeloocity[0], range_BurstVeloocity[1]);
+
+        //new animation sppeed
+        curr_SwimSpdMax = Random.Range(range_SwimSPD[0], range_SwimSPD[1]);
+    }
+
+
+
+
+
+
+
+
+    private void GetSetNewTurnRotation(Vector3 newTarget)
     {
         //Set the Quaternion rotation to face towards the target
         //this is pretty complicated to explain, but essentially, 
@@ -149,7 +258,7 @@ public class Parent_Movement : MonoBehaviour
         //#2 case
         if (dir.x < 0)
         {
-            //first flip the image to its facing the other way
+            //first flip the image so its facing the other way
             newAngle.x = 0;
             newAngle.y = 180;
             newAngle.z = Mathf.Atan2(dir.y, -1 * dir.x) * (180 / Mathf.PI);
@@ -178,50 +287,110 @@ public class Parent_Movement : MonoBehaviour
         }
 
         //transform.rotation = Quaternion.Euler(newAngle);
-        StartRotation(Quaternion.Euler(newAngle));
+        StartTurningRotation(Quaternion.Euler(newAngle));
     }
 
 
 
-
-    //its just a lerp for rotating the fish towards a new angle rotation vector3, part of the UPdate call
-    private void SmoothRotation()
+    //We cut this as its own func cause we either do a new  turn based on two different states
+    //one is the above func of getting and setting a new turning around animation rotation
+    //the other is for specific cases, like a guppy targeting a food 
+    protected void StartTurningRotation(Quaternion newRotation)
     {
-        //if we dont need to run this then skip
-        if (!isRotating) { return; }
-
-
-        transform.rotation = Quaternion.Lerp(start_Rotation, newRotationDestin, curr_RotationSeconds);
-        curr_RotationSeconds += Time.deltaTime;
-
-        if(curr_RotationSeconds > 1)
-        {
-            //stop doing this
-            isRotating = false;
-        }
-    }
-
-    //dont know how to send a message to the UPdate that we are starting a rotation
-    protected void StartRotation(Quaternion newRotation)
-    {
+        /*
         //if we were already working on a rotation,
         //we want to set it to not clash with the next one about to happend
-        if (isRotating) 
+        if (isTurning)
         {
-            //hard set our transform to our old final rotation
-            transform.rotation = newRotationDestin;
+            //hard set our transform to our _OLD_ final rotation
+            transform.rotation = end_TurningVector;
+
+        }
+        */
+
+        //before we can turn we need to 
+        //lower our velocity somehow, so we will set our linear damp super high in here
+        rb.linearDamping = 5;
+
+        //get new start rotation variables
+        curr_RotationSeconds = 0;                       //reset our counter
+        start_TurningVector = transform.rotation;       //set our current transform as our base rot
+        isTurning = true;                               //we are now turning
+        end_TurningVector = newRotation;                //our rotation we want to be at
+
+
+        //also reset our swiming variables (might get  changed)
+        curr_SwimDegree = 0;
+
+    }
+
+
+
+    //PART of the UPdate call
+    //All active turning logic is put in this func call
+    //there are two states we can be (turning around or swimming)
+    //if we are  turning around we do:
+    //          - a lerp for rotating the fish towards a new angle rotation vector3,
+    //            look at the GetSetNewTurnRotation func
+    //
+    //          -- a normal swiming rotation, just moving the tail to make it look like
+    //              the fish is swimming
+    private bool SmootTurnRotation()
+    {
+        //first case of we are currently turning around
+        if (isTurning)
+        {
+            //essentially, we do a lerp, 
+            //where its length of time is based on total_TurnTimeCount, 
+            //kinda have to work around the lerp  0 to 1 input so its set up this wayy
+            transform.rotation = Quaternion.Lerp(start_TurningVector, end_TurningVector, curr_RotationSeconds);
+            curr_RotationSeconds += Time.deltaTime * (1 / total_secsTurnTime);
+
+            //its when we get to 1 does the lerp finish, not on total time here
+            if (curr_RotationSeconds >= 1)
+            {
+                //stop doing this
+                isTurning = false;
+
+                //also reset our linear
+                rb.linearDamping = linearDamp;
+            }
+
+            return true;
+        }
+        else
+        {
+            //we are not turning, so we can do a swimming animation
+            //since we are just messing with the Y, we have to keep the  x and Z the same
+            Quaternion newSwim = end_TurningVector;
+            Vector3 temp = newSwim.eulerAngles;
+
+            //now update Y
+            curr_SwimDegree += curr_SwimAnimationSpeed * curr_SwimmDir * Time.deltaTime;
+  
+            //now if  we reach max turning , we want to start doing the other way
+            if(Mathf.Abs(curr_SwimDegree) >= max_SwimDegree) 
+            {
+                curr_SwimmDir *= -1;
+            }
+
+            //update swimspeed/ give falloff
+            curr_SwimAnimationSpeed = Mathf.Lerp(curr_SwimSpdMax, range_SwimSPD[0], curr_velFalloff);
+
+            //now update fish transform
+            temp.y = temp.y + curr_SwimDegree;
+            newSwim.eulerAngles = temp;
+            transform.rotation = newSwim;
+
+            return false;
 
         }
 
-
-        //get a new start rotation
-        curr_RotationSeconds = 0;
-        start_Rotation = transform.rotation; 
-        isRotating = true;
-        newRotationDestin = newRotation;
 
         
     }
+
+    
 
 
 
@@ -231,11 +400,15 @@ public class Parent_Movement : MonoBehaviour
     //also we want to make it so we stay as close to the edge as possible
     public void TankEdgeReached(Collider2D other)
     {
-        rb.linearVelocity = Vector2.zero;
+        //rb.linearVelocity = Vector2.zero;
         //transform.position = Vector2.MoveTowards(transform.position, curr_roamTarget, 1 * Time.deltaTime);
 
+        //rb.linearVelocity = Vector2.zero;
+        //var dir = (curr_roamTarget - transform.position).normalized;
+        //rb.AddForce(dir * TankBoundryBounceStr * Time.deltaTime, ForceMode2D.Impulse);
+
         var dir = (curr_roamTarget - transform.position).normalized;
-        rb.AddForce(dir * TankBoundryBounceStr * Time.deltaTime, ForceMode2D.Impulse);
+        rb.linearVelocity = dir * TankBoundryBounceStr;
     }
 
 
@@ -264,9 +437,11 @@ public class Parent_Movement : MonoBehaviour
 
         //current range untill new target
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, newTarget_MinDistanceRad);
+        Gizmos.DrawWireSphere(transform.position, newRoamTarget_MinDistanceRad);
         Gizmos.color = Color.black;
-        Gizmos.DrawWireSphere(transform.position, newTarget_MaxDistanceRad);
+        Gizmos.DrawWireSphere(transform.position, newClusterTarget_RangeDisRad[0]);
+        Gizmos.color = Color.black;
+        Gizmos.DrawWireSphere(transform.position, newClusterTarget_RangeDisRad[1]);
 
 
     }

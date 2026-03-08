@@ -35,14 +35,14 @@ public class Guppy_Parent_Movement : Parent_Movement
         if (Mathf.Abs(distance) > targetRoam_ReachedRadius)
         {
 
-            UpdatePosition(curr_roamTarget, panic_velocity);
+            UpdatePosition(curr_roamTarget, panic_velocity, MovementType.Constant);
         }
 
         //get new point once fish reaches it
         else
         {
             
-            NewRandomIdleTarget_Tank();
+            NewRandomIdleTarget_Tank(Guppy_States.Panic);
 
         }
     }
@@ -69,7 +69,7 @@ public class Guppy_Parent_Movement : Parent_Movement
             //else
             //follow food
             //head towards target 
-            UpdatePosition(foodTarget.transform.position, hungry_velocity);
+            UpdatePosition(foodTarget.transform.position, hungry_velocity, MovementType.Constant);
         }
     }
     
@@ -82,7 +82,7 @@ public class Guppy_Parent_Movement : Parent_Movement
         if (Mathf.Abs(distance) > targetRoam_ReachedRadius)
         {
 
-            UpdatePosition(curr_roamTarget, curr_roam_velocity);
+            UpdatePosition(curr_roamTarget, curr_BurstVelocity, MovementType.Burst);
         }
 
         //get new point once fish reaches it
@@ -102,27 +102,29 @@ public class Guppy_Parent_Movement : Parent_Movement
         if (Mathf.Abs(distance) > targetClusterRoam_ReachedRadius)
         {
 
-            UpdatePosition(curr_roamTarget, curr_roam_velocity);
+            UpdatePosition(curr_roamTarget, curr_BurstVelocity, MovementType.Constant);
         }
 
         //get new point once fish reaches it
         else
         {
             //send a message to the State machine that we finished with this rotation
-            NewRandomIdleTarget_Tank(Guppy_States.ClusterRoam);     //this first so the resetrotation happens second
-            guppy_SM.FinishStateRotation(Guppy_States.ClusterRoam);
+            NewRandomIdleTarget_Tank(Guppy_States.ClusterRoam);     //this first so the reset rotation happens second
+            guppy_SM.FinishStateRotation(Guppy_States.ClusterRoam); //rotation
         }
     }
 
-    protected override void NewRandomIdleTarget_Tank(Guppy_States targetType = Guppy_States.Roam)
+    protected override void NewRandomIdleTarget_Tank(Guppy_States guppy_state = Guppy_States.Roam)
     {
         
+        //we either do the cluster version or  the roam version:
+        //roam version is just the base func version.
 
-        //tanke dememsions
-        float[] swimDem = TankBoundries.instance.swim_arr;
-
-        if(targetType == Guppy_States.ClusterRoam)
+        if(guppy_state == Guppy_States.ClusterRoam)
         {
+            //tanke dimemsions
+            float[] swimDem = TankBoundries.instance.swim_arr;
+
             //run this once atleast cause it'll just think we found a good enough target cause we are already on it
             do
             {
@@ -132,29 +134,23 @@ public class Guppy_Parent_Movement : Parent_Movement
                     0);
             }
             //get a new target area thats close to this  guppy
-            //while our distance is more than the radius, find until its LESS THAN
-            while (Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) > newTarget_MaxDistanceRad);
-            
+            //keep repeating until we get one between both distance radius's
+            while 
+            (
+            Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) < newClusterTarget_RangeDisRad[0] ||
+            newClusterTarget_RangeDisRad[1] < Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) 
+            );
+
+            //since new target
+            NewTargetVariables(curr_roamTarget, guppy_state);
         }
         
         //normal target getting
         else
         {
-            do
-            {
-
-                curr_roamTarget = new Vector3(
-                    Random.Range(swimDem[0], swimDem[1]),
-                    Random.Range(swimDem[2], swimDem[3]),
-                    0);
-            }
-            //get a new target area thats far from this guppy
-            while (Mathf.Abs(Vector2.Distance(curr_roamTarget, transform.position)) < newTarget_MinDistanceRad);
-            
+            base.NewRandomIdleTarget_Tank();
         }
 
-        //since new target
-        NewTargetVariables(curr_roamTarget);
     }
 
 
@@ -167,15 +163,18 @@ public class Guppy_Parent_Movement : Parent_Movement
         //wait
         curr_SecsLeft -= Time.deltaTime;
 
+        //check rotation
+        UpdatePosition(curr_roamTarget, 0, MovementType.Idle);
 
         //did we finish waiting
-        if(curr_SecsLeft <= 0)
+        if (curr_SecsLeft <= 0)
         {
-            //transfer
+            //reset our curr_sec for  next time
+            curr_SecsLeft = Random.Range((float)range_SecsLeft[0], range_SecsLeft[1]);
+
+            //then transfer
             guppy_SM.FinishStateRotation(Guppy_States.Idle);
 
-            //then reset our curr_sec for  next time
-            curr_SecsLeft = Random.Range((float)range_SecsLeft[0], range_SecsLeft[1]);
         }
         
     }
@@ -211,7 +210,7 @@ public class Guppy_Parent_Movement : Parent_Movement
 
 
         //new target
-        NewTargetVariables(foodTarget.transform.position);
+        NewTargetVariables(foodTarget.transform.position, Guppy_States.Hungry);
     }
     
 
@@ -222,11 +221,11 @@ public class Guppy_Parent_Movement : Parent_Movement
     {
         if(transform.rotation.y != 0)
         {
-            StartRotation(Quaternion.Euler(new Vector3(0, 180, 0)));
+            StartTurningRotation(Quaternion.Euler(new Vector3(0, 180, 0)));
         }
         else
         {
-            StartRotation(Quaternion.Euler(Vector3.zero));
+            StartTurningRotation(Quaternion.Euler(Vector3.zero));
         }
     }
 

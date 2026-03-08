@@ -9,7 +9,7 @@ public class Guppy_Parent_Stats : Parent_Stats
 
     // --------------------------------- hunger related ----------------------------------------//
     protected float curr_stomach;               //current stomach fill, if this reaches 0, guppy should die of starvation
-    private float burnRate = 1;                 //keep at 1, just so have it reference as -1 unit per second, or can be upped on certain condiions
+    private float burnRate = 0;                 //keep at 1, just so have it reference as -1 unit per second, or can be upped on certain condiions
     protected int threshold_StartHunger;          //at what number of a stomach will the guppy be in starvation mode
 
     //these are just used in changing the color of the fish depending on the situation
@@ -161,7 +161,7 @@ public class Guppy_Parent_Stats : Parent_Stats
 
     private void StartStomach()
     {
-        curr_stomach = 100*Random.Range(15f, 17f);
+        curr_stomach = Random.Range(15f, 17f);
         threshold_StartHunger = (int)curr_stomach / 2;
     }
 
