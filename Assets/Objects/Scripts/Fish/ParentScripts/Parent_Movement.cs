@@ -21,14 +21,14 @@ public class Parent_Movement : MonoBehaviour
     protected float targetRoam_ReachedRadius = 0.5f;                                    //used in determining if we have reached our destination
     protected float targetClusterRoam_ReachedRadius = 0.3f;                             //same as targetRoam, but for clusterRoam
     protected float newRoamTarget_MinDistanceRad = 3;                                   //the minimum distance away from our fish current position, Used in Roam, 
-    protected float[] newClusterTarget_RangeDisRad = new float[2] { 1.5f, 2.1f };       //the max distance from the fiish at curr position, used in cluster roam
+    protected float[] newClusterTarget_RangeDisRad = new float[2] { 1.7f, 3f };         //the max distance from the fiish at curr position, used in cluster roam
 
 
     // --------------------------------- Burst Velocity ---------------------------------
-    protected float curr_BurstVelocity = 3;                                    //current rotation burst speed,
-    protected float[] range_BurstVeloocity = new float[2] { 0.68f, 2.43f };    //used in getting anew curr_burst velocity
-    protected float curr_velFalloff = 0;                                    //our current lerp secconds
-    protected float baseVelocity = 0.1f;                                       //the slowest a fish will go while using burst movement
+    protected float curr_BurstVelocity = 3;                                         //current rotation burst speed,
+    protected float[] range_BurstVeloocity = new float[2] { 0.68f, 2.43f };         //used in getting anew curr_burst velocity
+    protected float baseVelocity = 0.1f;                                            //the slowest a fish will go while using burst movement
+    protected float[] range_BurstSwimAnimeSPD = new float[2] { 70 , 100};           //used in getting a new swim speed (curr_SwimSpd)
 
 
     //--------------------------------- Const Velocity ---------------------------------
@@ -41,19 +41,19 @@ public class Parent_Movement : MonoBehaviour
     protected Quaternion start_TurningVector = Quaternion.Euler(Vector3.zero);          //Keeps track of the start rotation angle for lerp
     protected Quaternion end_TurningVector = Quaternion.Euler(Vector3.zero);            //the new angle we plan on having this fish turn towards
     protected float curr_RotationSeconds = 0;                                           //used in lerp
-    
+    //these are used twogether
     protected float total_secsTurnTime = 0.5f;                                          //how long it takes for this fish to finish turning around
-    protected float[] total_TurnTimeCount = new float[3] { 0.5f, 0.2f, 0.05f };         //and its differ turning speeds for: [roam, cluster, panic]
+    protected float[] total_TurnTimeCount = new float[3] { 0.55f, 0.35f, 0.15f };         //and its differ turning speeds for: [roam, cluster, panic]
 
 
     // --------------------------------- Swimming ---------------------------------
     //these ones are for the animation side of swimming, not actually the movement 
-    public const float max_SwimDegree = 10;                         //how much this fish can turn its body while swimming
-    public float curr_SwimDegree = 0;                               //what is this fish current turn'd degree
-    protected float[] range_SwimSPD = new float[2] { 47, 60 };      //used in getting a new swim speed
-    public float curr_SwimSpdMax = 20;                              //how fast this fish does its swimming animation,
-    protected float curr_SwimAnimationSpeed = 0;                    //this depending on movementtype will change
-    private float curr_SwimmDir = 1;                                //used in updating the direction its either 1 or -1
+    private const float max_SwimDegree = 20;                    //how much this fish can turn its body while swimming
+    private float curr_SwimDegree = 0;                          //what is this fish current turn'd degree
+    private float start_SwimAnimeSpd = 40;                      //how fast this fish does its swimming animation, (if its a constant speed 40 is good)
+    private float curr_SwimAnimationSpeed = 0;                  //this depending on movementtype will change
+    private float curr_SwimDir = 1;                             //used in updating the direction its either 1 or -1
+    private float curr_SwimLerpSecs = 0;                        //used in updating our swimming swaddle (lerp)
 
     //doesn't really have a section to be put under, but this is our linear dampening for this fish
     //this one is more of a const cause its only going to get referenced/used to set 
@@ -91,10 +91,13 @@ public class Parent_Movement : MonoBehaviour
     protected void UpdatePosition(Vector3 target_pos, float current_Vel, MovementType moveType)
     {
         //check here if we are currently turning
-        if (SmootTurnRotation()) { return; }
+        if (ActivelyTurningRotation()) { return; }
 
         //will always need a direction
         var dir = (target_pos - transform.position).normalized;
+
+        //and we update our swmming animation
+        SwimmingRotation();
 
         switch (moveType)
         {
@@ -106,6 +109,10 @@ public class Parent_Movement : MonoBehaviour
             //all this does is create a constant velocity towards the target
             case (MovementType.Constant):
                 rb.AddForce(dir * current_Vel * Time.deltaTime, ForceMode2D.Impulse);
+
+                //dont need to update our swimming animation here
+                //its constant, just use the start animation speed
+
                 break;
 
             
@@ -113,21 +120,27 @@ public class Parent_Movement : MonoBehaviour
             //then we use a lerp to slowly decrease to a base movement speed
             case (MovementType.Burst):
 
-                //linear falloff so far
-                //float newVel = Mathf.Lerp(curr_BurstVelocity, baseVelocity, curr_velFalloff);
-                //curr_velFalloff += Time.deltaTime;
                 
+                //update our swiming (animation)
+                curr_SwimLerpSecs = 4 *Time.deltaTime;
+                Debug.Log(curr_SwimLerpSecs);
                 //if we finish this burst, get a new velocity 
-                if(Mathf.Abs(rb.linearVelocityX * rb.linearVelocityY) < baseVelocity) 
-                { 
-                    NewBurstVariables(); 
+                if( Mathf.Abs(rb.linearVelocityX) + Mathf.Abs(rb.linearVelocityY) < baseVelocity) 
+                {
+                    NewBurstVariables();
                     rb.AddForce(dir * curr_BurstVelocity, ForceMode2D.Impulse);
                 }
+
                 break;
 
 
+
             case (MovementType.Idle):
-                //do nothing
+                //do nothing really
+
+                //just make sure our swimming animation stops
+                //setting our curr_SwimLerpSecs to 1, sets our swimming animation to 0 
+                curr_SwimLerpSecs = 1;
                 break;
 
 
@@ -197,6 +210,12 @@ public class Parent_Movement : MonoBehaviour
         curr_BurstVelocity = Random.Range(range_BurstVeloocity[0], range_BurstVeloocity[1]);
         curr_ConstVelocity = Random.Range(range_ConstVeloocity[0], range_ConstVeloocity[1]);
 
+        //incase we are arn't using burst movement next rotation
+        //set our curr_SwimSpd to something const
+        //and reset our lerp counter
+        start_SwimAnimeSpd = 40;
+        curr_SwimLerpSecs = 0;
+
         //now we update our rotation, kinda long to just throw in 
         GetSetNewTurnRotation(newTarget);
 
@@ -213,7 +232,8 @@ public class Parent_Movement : MonoBehaviour
         curr_BurstVelocity = Random.Range(range_BurstVeloocity[0], range_BurstVeloocity[1]);
 
         //new animation sppeed
-        curr_SwimSpdMax = Random.Range(range_SwimSPD[0], range_SwimSPD[1]);
+        start_SwimAnimeSpd = Random.Range(range_BurstSwimAnimeSPD[0], range_BurstSwimAnimeSPD[1]);
+        curr_SwimLerpSecs = 0;
     }
 
 
@@ -255,20 +275,20 @@ public class Parent_Movement : MonoBehaviour
         var dir = newTarget - transform.position; //this is the new directional vector that this fish is swimming towards
 
 
+        //#3 case
+        if (dir.x < 0 && dir.y < 0)
+        {
+            newAngle.x = 0;
+            newAngle.y = 180;
+            newAngle.z = -1 * Mathf.Atan2(-1 * dir.y, -1 * dir.x) * (180 / Mathf.PI);
+        }
         //#2 case
-        if (dir.x < 0)
+        else if (dir.x < 0)
         {
             //first flip the image so its facing the other way
             newAngle.x = 0;
             newAngle.y = 180;
             newAngle.z = Mathf.Atan2(dir.y, -1 * dir.x) * (180 / Mathf.PI);
-        }
-        //#3 case
-        else if (dir.x < 0 && dir.y < 0)
-        {
-            newAngle.x = 0;
-            newAngle.y = 180;
-            newAngle.z = -1 * Mathf.Atan2(-1 * dir.y, -1 * dir.x) * (180 / Mathf.PI);
         }
         //#4 case
         else if (dir.y < 0)
@@ -315,7 +335,6 @@ public class Parent_Movement : MonoBehaviour
         //get new start rotation variables
         curr_RotationSeconds = 0;                       //reset our counter
         start_TurningVector = transform.rotation;       //set our current transform as our base rot
-        isTurning = true;                               //we are now turning
         end_TurningVector = newRotation;                //our rotation we want to be at
 
 
@@ -326,6 +345,8 @@ public class Parent_Movement : MonoBehaviour
 
 
 
+
+    /// <summary>
     //PART of the UPdate call
     //All active turning logic is put in this func call
     //there are two states we can be (turning around or swimming)
@@ -335,10 +356,14 @@ public class Parent_Movement : MonoBehaviour
     //
     //          -- a normal swiming rotation, just moving the tail to make it look like
     //              the fish is swimming
-    private bool SmootTurnRotation()
+    //             (this one is on its own function down below)
+    /// </summary>
+    /// <returns></returns>
+    private bool ActivelyTurningRotation()
     {
         //first case of we are currently turning around
-        if (isTurning)
+        //the lerp finishes once we reach 1, so anything before 1 is turning around logic
+        if (curr_RotationSeconds < 1)
         {
             //essentially, we do a lerp, 
             //where its length of time is based on total_TurnTimeCount, 
@@ -346,51 +371,60 @@ public class Parent_Movement : MonoBehaviour
             transform.rotation = Quaternion.Lerp(start_TurningVector, end_TurningVector, curr_RotationSeconds);
             curr_RotationSeconds += Time.deltaTime * (1 / total_secsTurnTime);
 
-            //its when we get to 1 does the lerp finish, not on total time here
-            if (curr_RotationSeconds >= 1)
+            //this chunk determines exit
+            //the flat value is what would normally be 1, 
+            //but we want to exit a bit early so we can look more natural, but still finsh the lerp
+            if (curr_RotationSeconds >= 0.8f)
             {
-                //stop doing this
-                isTurning = false;
-
-                //also reset our linear
+                //all we reset is our linear damp and return false to coninue moving
                 rb.linearDamping = linearDamp;
+                return false;
             }
-
-            return true;
-        }
-        else
-        {
-            //we are not turning, so we can do a swimming animation
-            //since we are just messing with the Y, we have to keep the  x and Z the same
-            Quaternion newSwim = end_TurningVector;
-            Vector3 temp = newSwim.eulerAngles;
-
-            //now update Y
-            curr_SwimDegree += curr_SwimAnimationSpeed * curr_SwimmDir * Time.deltaTime;
-  
-            //now if  we reach max turning , we want to start doing the other way
-            if(Mathf.Abs(curr_SwimDegree) >= max_SwimDegree) 
+            else
             {
-                curr_SwimmDir *= -1;
+                //else we keep turning around
+                return true;
             }
-
-            //update swimspeed/ give falloff
-            curr_SwimAnimationSpeed = Mathf.Lerp(curr_SwimSpdMax, range_SwimSPD[0], curr_velFalloff);
-
-            //now update fish transform
-            temp.y = temp.y + curr_SwimDegree;
-            newSwim.eulerAngles = temp;
-            transform.rotation = newSwim;
-
-            return false;
-
         }
-
-
         
+        return false;
+
     }
 
-    
+
+
+    /// <summary>
+    /// description taken from activelyturning func:
+    /// 
+    /// -- a normal swiming rotation, just moving the tail to make it look like
+    //              the fish is swimming
+    //              
+    /// </summary>
+    protected void SwimmingRotation()
+    {
+
+        //we are not turning, so we can do a swimming animation
+        //since we are just messing with the Y, we have to keep the  x and Z the same
+        Quaternion newSwim = end_TurningVector;
+        Vector3 temp = newSwim.eulerAngles;
+
+        //now update Y
+        curr_SwimDegree += curr_SwimAnimationSpeed * curr_SwimDir * Time.deltaTime;
+
+        //now if  we reach max turning , we want to start doing the other way
+        if (Mathf.Abs(curr_SwimDegree) >= max_SwimDegree)
+        {
+            curr_SwimDir *= -1;
+        }
+
+        //update swimspeed/ give falloff
+        curr_SwimAnimationSpeed = Mathf.Lerp(start_SwimAnimeSpd, 0, curr_SwimLerpSecs);
+
+        //now update fish transform
+        temp.y = temp.y + curr_SwimDegree;
+        newSwim.eulerAngles = temp;
+        transform.rotation = newSwim;
+    }
 
 
 

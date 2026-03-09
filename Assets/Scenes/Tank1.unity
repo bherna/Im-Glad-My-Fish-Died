@@ -149,9 +149,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Test_Movement
   sprite_transform: {fileID: 0}
-  curr_SwimDegree: 0
-  curr_SwimSpdMax: 20
-  TankBoundryBounceStr: 15
+  TankBoundryBounceStr: 0.05
   testVel: 3
 --- !u!1 &259936019
 GameObject:
