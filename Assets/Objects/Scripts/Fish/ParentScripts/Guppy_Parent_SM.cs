@@ -11,7 +11,7 @@ using UnityEngine;
 
 //additional states:
 //Follow, added by pet charlie for creating a swarm state, below the hunger state
-public enum Guppy_States { Grabbed, Hungry, Roam, ClusterRoam, Idle, Panic, Follow};
+public enum Guppy_States { Grabbed, Hungry, Roam, Idle, Panic, Follow};
 
 
 
@@ -84,9 +84,6 @@ public class Guppy_Parent_SM : Parent_SM
             case Guppy_States.Idle:
                 guppy_Parent_Movement.IdleMode();
                 break;
-            case Guppy_States.ClusterRoam:
-                guppy_Parent_Movement.ClusterRoamMode();
-                break;
             default:
                 Debug.Log("No current state for guppy");
                 break;
@@ -97,7 +94,8 @@ public class Guppy_Parent_SM : Parent_SM
 
     //make sure when using this function that its called when we actually finish a rotation, 
     //also all states share the same rotation  count down which can become confusing
-    public void FinishStateRotation(Guppy_States stateCalledFrom)
+    //returns true if we still have more rotations to go
+    public bool FinishStateRotation(Guppy_States stateCalledFrom)
     {
 
         curr_rotationCountdown -= 1;
@@ -111,10 +109,6 @@ public class Guppy_Parent_SM : Parent_SM
                     break;
 
                 case Guppy_States.Roam:
-                    GuppyToState(Guppy_States.ClusterRoam);
-                    break;
-
-                case Guppy_States.ClusterRoam:
                     GuppyToState(Guppy_States.Idle);
                     break;
 
@@ -131,12 +125,14 @@ public class Guppy_Parent_SM : Parent_SM
                     Debug.Log("Case has not been added yet.");
                     break;
             }
+
+            //put last ovb
+            return false;
         }
-        
 
-        
-        
+        return true;
 
+       
     }
 
     private void GuppyToState(Guppy_States newState)
@@ -156,12 +152,11 @@ public class Guppy_Parent_SM : Parent_SM
                 guppy_Parent_Movement.ResetRotation();
                 break;
 
-            case Guppy_States.ClusterRoam:
             case Guppy_States.Roam:
                 guppy_current_state = newState;
                 curr_rotationCountdown = Random.Range(range_rotationCountdown[0], range_rotationCountdown[1]);
                 //we make sure we still do our rotation
-                guppy_Parent_Movement.NewTargetVariables(guppy_Parent_Movement.curr_roamTarget, newState); 
+                guppy_Parent_Movement.NewRandomIdleTarget_Tank();
                 break;
 
             default:

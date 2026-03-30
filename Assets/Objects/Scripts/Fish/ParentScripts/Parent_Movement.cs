@@ -19,16 +19,16 @@ public class Parent_Movement : MonoBehaviour
     // --------------------------------- Targeting ---------------------------------
     public Vector3 curr_roamTarget { get; protected set; }
     protected float targetRoam_ReachedRadius = 0.5f;                                    //used in determining if we have reached our destination
-    protected float targetClusterRoam_ReachedRadius = 0.3f;                             //same as targetRoam, but for clusterRoam
+    //protected float targetClusterRoam_ReachedRadius = 0.3f;                             //same as targetRoam, but for clusterRoam
     protected float newRoamTarget_MinDistanceRad = 3;                                   //the minimum distance away from our fish current position, Used in Roam, 
-    protected float[] newClusterTarget_RangeDisRad = new float[2] { 1.7f, 3f };         //the max distance from the fiish at curr position, used in cluster roam
+    //protected float[] newClusterTarget_RangeDisRad = new float[2] { 1.7f, 3f };         //the max distance from the fiish at curr position, used in cluster roam
 
 
     // --------------------------------- Burst Velocity ---------------------------------
     protected float curr_BurstVelocity = 3;                                         //current rotation burst speed,
     protected float[] range_BurstVeloocity = new float[2] { 0.68f, 2.43f };         //used in getting anew curr_burst velocity
-    protected float baseVelocity = 0.1f;                                            //the slowest a fish will go while using burst movement
-    protected float[] range_BurstSwimAnimeSPD = new float[2] { 70 , 100};           //used in getting a new swim speed (curr_SwimSpd)
+    protected float baseVelocity = 0.17f;                                            //the slowest a fish will go while using burst movement
+    protected float[] range_BurstSwimAnimeSPD = new float[2] {200 , 290};           //used in getting a new swim speed (curr_SwimSpd)
 
 
     //--------------------------------- Const Velocity ---------------------------------
@@ -43,18 +43,19 @@ public class Parent_Movement : MonoBehaviour
     protected float curr_RotationSeconds = 0;                                           //used in lerp
     //these are used twogether
     protected float total_secsTurnTime = 0.5f;                                          //how long it takes for this fish to finish turning around
-    protected float[] total_TurnTimeCount = new float[3] { 0.55f, 0.35f, 0.15f };         //and its differ turning speeds for: [roam, cluster, panic]
+    protected float[] total_TurnTimeCount = new float[2] { 0.55f, 0.15f };         //and its differ turning speeds for: [roam, cluster, panic]
 
 
     // --------------------------------- Swimming ---------------------------------
     //these ones are for the animation side of swimming, not actually the movement 
-    private const float max_SwimDegree = 20;                    //how much this fish can turn its body while swimming
+    private const float max_SwimDegree = 30;                    //how much this fish can turn its body while swimming
     private float curr_SwimDegree = 0;                          //what is this fish current turn'd degree
-    private float start_SwimAnimeSpd = 40;                      //how fast this fish does its swimming animation, (if its a constant speed 40 is good)
+    private float start_SwimAnimeSpd = 290;                     //how fast this fish does its swimming animation, (if its a constant speed 40 is good)
     private float curr_SwimAnimationSpeed = 0;                  //this depending on movementtype will change
-    private float curr_SwimDir = 1;                             //used in updating the direction its either 1 or -1
-    private float curr_SwimLerpSecs = 0;                        //used in updating our swimming swaddle (lerp)
-
+    private int curr_SwimDir = 1;                               //used in updating the direction its either 1 or -1
+    private float curr_SwimLerpSecs = 0;                        //used in updating our swimming swaddle (lerp) t,
+    private const float curr_Decel = 0.73f;                       //how fast this fish stops its swimming swaddle in seconds
+    
     //doesn't really have a section to be put under, but this is our linear dampening for this fish
     //this one is more of a const cause its only going to get referenced/used to set 
     protected const float linearDamp = 0.5f;
@@ -69,6 +70,9 @@ public class Parent_Movement : MonoBehaviour
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        //just to avoid the target being in the middle of the screen
+        NewRandomIdleTarget_Tank();
     }
 
 
@@ -120,16 +124,17 @@ public class Parent_Movement : MonoBehaviour
             //then we use a lerp to slowly decrease to a base movement speed
             case (MovementType.Burst):
 
-                
-                //update our swiming (animation)
-                curr_SwimLerpSecs = 4 *Time.deltaTime;
-                Debug.Log(curr_SwimLerpSecs);
+                //Debug.Log(Mathf.Abs(rb.linearVelocityX) + Mathf.Abs(rb.linearVelocityY));
                 //if we finish this burst, get a new velocity 
                 if( Mathf.Abs(rb.linearVelocityX) + Mathf.Abs(rb.linearVelocityY) < baseVelocity) 
                 {
+                    //Debug.Log(curr_SwimLerpSecs);
                     NewBurstVariables();
                     rb.AddForce(dir * curr_BurstVelocity, ForceMode2D.Impulse);
                 }
+
+                //update our swiming (animation) speed
+                curr_SwimLerpSecs += curr_Decel * Time.deltaTime;
 
                 break;
 
@@ -157,7 +162,7 @@ public class Parent_Movement : MonoBehaviour
 
 
     //create a new idle target, that is within the tank dimensions and outside the fish range.
-    protected virtual void NewRandomIdleTarget_Tank(Guppy_States guppy_state = Guppy_States.Roam)
+    public virtual void NewRandomIdleTarget_Tank(Guppy_States guppy_state = Guppy_States.Roam)
     {
 
         //tanke dememsions
@@ -181,7 +186,7 @@ public class Parent_Movement : MonoBehaviour
     }
 
 
-
+    
     //whenever a new target is set we reset some variables
     //this one is specific to a completely new rotation, 
     public virtual void NewTargetVariables(Vector3 newTarget, Guppy_States guppy_State)
@@ -193,12 +198,8 @@ public class Parent_Movement : MonoBehaviour
                 total_secsTurnTime = total_TurnTimeCount[0];
                 break;
 
-            case Guppy_States.ClusterRoam:
-                total_secsTurnTime = total_TurnTimeCount[1];
-                break;
-
             case Guppy_States.Panic:
-                total_secsTurnTime = total_TurnTimeCount[2];
+                total_secsTurnTime = total_TurnTimeCount[1];
                 break;
 
             default:
@@ -210,13 +211,7 @@ public class Parent_Movement : MonoBehaviour
         curr_BurstVelocity = Random.Range(range_BurstVeloocity[0], range_BurstVeloocity[1]);
         curr_ConstVelocity = Random.Range(range_ConstVeloocity[0], range_ConstVeloocity[1]);
 
-        //incase we are arn't using burst movement next rotation
-        //set our curr_SwimSpd to something const
-        //and reset our lerp counter
-        start_SwimAnimeSpd = 40;
-        curr_SwimLerpSecs = 0;
-
-        //now we update our rotation, kinda long to just throw in 
+        //now we update our rotation,
         GetSetNewTurnRotation(newTarget);
 
     }
@@ -228,11 +223,12 @@ public class Parent_Movement : MonoBehaviour
     //this is used in reseting our burst variables, 
     private void NewBurstVariables()
     {
-        //new random velocity
-        curr_BurstVelocity = Random.Range(range_BurstVeloocity[0], range_BurstVeloocity[1]);
+        //new random velocity and its matching animation speed variables
+        float t = Random.Range(0, (float)1);
+        curr_BurstVelocity = Mathf.Lerp(range_BurstVeloocity[0], range_BurstVeloocity[1], t);
+        start_SwimAnimeSpd = Mathf.Lerp(range_BurstSwimAnimeSPD[0], range_BurstSwimAnimeSPD[1], t);
 
-        //new animation sppeed
-        start_SwimAnimeSpd = Random.Range(range_BurstSwimAnimeSPD[0], range_BurstSwimAnimeSPD[1]);
+        //reset our lerp timer  too
         curr_SwimLerpSecs = 0;
     }
 
@@ -400,7 +396,7 @@ public class Parent_Movement : MonoBehaviour
     //              the fish is swimming
     //              
     /// </summary>
-    protected void SwimmingRotation()
+    protected virtual void SwimmingRotation()
     {
 
         //we are not turning, so we can do a swimming animation
@@ -414,7 +410,7 @@ public class Parent_Movement : MonoBehaviour
         //now if  we reach max turning , we want to start doing the other way
         if (Mathf.Abs(curr_SwimDegree) >= max_SwimDegree)
         {
-            curr_SwimDir *= -1;
+            curr_SwimDir = (int)Mathf.Clamp(curr_SwimDegree, -1, 1)  * - 1;
         }
 
         //update swimspeed/ give falloff
@@ -472,11 +468,12 @@ public class Parent_Movement : MonoBehaviour
         //current range untill new target
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, newRoamTarget_MinDistanceRad);
+        /*
         Gizmos.color = Color.black;
         Gizmos.DrawWireSphere(transform.position, newClusterTarget_RangeDisRad[0]);
         Gizmos.color = Color.black;
         Gizmos.DrawWireSphere(transform.position, newClusterTarget_RangeDisRad[1]);
-
+        */
 
     }
 }

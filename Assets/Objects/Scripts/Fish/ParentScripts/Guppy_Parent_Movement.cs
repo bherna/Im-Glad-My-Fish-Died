@@ -89,13 +89,17 @@ public class Guppy_Parent_Movement : Parent_Movement
         else
         {
             //send a message to the State machine that we finished with this rotation
-            NewRandomIdleTarget_Tank(Guppy_States.Roam);
-            guppy_SM.FinishStateRotation(Guppy_States.Roam);
+            //if we still have more to go, we can get a new targer, else we skip this to avoid a 
+            //race condition with resetRotation()
+            if (guppy_SM.FinishStateRotation(Guppy_States.Roam))
+            {
+                NewRandomIdleTarget_Tank(Guppy_States.Roam);
+            }
 
         }
     }
 
-    public void ClusterRoamMode()
+    /*public void ClusterRoamMode()
     {
         var distance = Vector3.Distance(curr_roamTarget, transform.position);
 
@@ -113,7 +117,8 @@ public class Guppy_Parent_Movement : Parent_Movement
             guppy_SM.FinishStateRotation(Guppy_States.ClusterRoam); //rotation
         }
     }
-
+    */
+    /*
     protected override void NewRandomIdleTarget_Tank(Guppy_States guppy_state = Guppy_States.Roam)
     {
         
@@ -152,7 +157,7 @@ public class Guppy_Parent_Movement : Parent_Movement
         }
 
     }
-
+    */
 
     //is just stationary, will conver into roam mode after it finishes.
     //this is called after we set a idle ammount, this only transitions into idle from turn to idle function
@@ -219,14 +224,17 @@ public class Guppy_Parent_Movement : Parent_Movement
     //Used in reseting rotation to face (1.0) or (-1,0)
     public void ResetRotation()
     {
-        if(transform.rotation.y != 0)
-        {
-            StartTurningRotation(Quaternion.Euler(new Vector3(0, 180, 0)));
-        }
-        else
+        Debug.Log("Y Rotation: "+transform.rotation.eulerAngles.y);
+
+        if (Mathf.Abs(transform.rotation.eulerAngles.y) < 90)
         {
             StartTurningRotation(Quaternion.Euler(Vector3.zero));
         }
+        else
+        {
+            StartTurningRotation(Quaternion.Euler(new Vector3(0, 180, 0)));
+        }
+        
     }
 
 }
