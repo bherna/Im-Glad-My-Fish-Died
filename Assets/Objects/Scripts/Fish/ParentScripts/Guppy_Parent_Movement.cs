@@ -35,14 +35,14 @@ public class Guppy_Parent_Movement : Parent_Movement
         if (Mathf.Abs(distance) > targetRoam_ReachedRadius)
         {
 
-            UpdatePosition(curr_roamTarget, panic_velocity, MovementType.Constant);
+            UpdatePosition(curr_roamTarget, panic_velocity, MovementType.Constant, distance);
         }
 
         //get new point once fish reaches it
         else
         {
             
-            NewRandomIdleTarget_Tank(Guppy_States.Panic);
+            NewRandomIdleTarget_Tank(MovementType.Panic);
 
         }
     }
@@ -69,7 +69,7 @@ public class Guppy_Parent_Movement : Parent_Movement
             //else
             //follow food
             //head towards target 
-            UpdatePosition(foodTarget.transform.position, hungry_velocity, MovementType.Constant);
+            UpdatePosition(foodTarget.transform.position, hungry_velocity, MovementType.Constant, 0);
         }
     }
     
@@ -82,18 +82,15 @@ public class Guppy_Parent_Movement : Parent_Movement
         if (Mathf.Abs(distance) > targetRoam_ReachedRadius)
         {
 
-            UpdatePosition(curr_roamTarget, curr_BurstVelocity, MovementType.Burst);
+            UpdatePosition(curr_roamTarget, curr_BurstVelocity, MovementType.Burst, distance);
         }
 
         //get new point once fish reaches it
         else
         {
-            //send a message to the State machine that we finished with this rotation
-            //if we still have more to go, we can get a new targer, else we skip this to avoid a 
-            //race condition with resetRotation()
             if (guppy_SM.FinishStateRotation(Guppy_States.Roam))
             {
-                NewRandomIdleTarget_Tank(Guppy_States.Roam);
+                NewRandomIdleTarget_Tank(MovementType.Burst);
             }
 
         }
@@ -169,7 +166,7 @@ public class Guppy_Parent_Movement : Parent_Movement
         curr_SecsLeft -= Time.deltaTime;
 
         //check rotation
-        UpdatePosition(curr_roamTarget, 0, MovementType.Idle);
+        UpdatePosition(curr_roamTarget, 0, MovementType.Idle, 0);
 
         //did we finish waiting
         if (curr_SecsLeft <= 0)
@@ -215,26 +212,14 @@ public class Guppy_Parent_Movement : Parent_Movement
 
 
         //new target
-        NewTargetVariables(foodTarget.transform.position, Guppy_States.Hungry);
+        NewTargetVariables(foodTarget.transform.position, MovementType.Panic);
     }
-    
-
 
 
     //Used in reseting rotation to face (1.0) or (-1,0)
     public void ResetRotation()
     {
-        Debug.Log("Y Rotation: "+transform.rotation.eulerAngles.y);
+        StartTurningRotation(GetZeroDirection());
 
-        if (Mathf.Abs(transform.rotation.eulerAngles.y) < 90)
-        {
-            StartTurningRotation(Quaternion.Euler(Vector3.zero));
-        }
-        else
-        {
-            StartTurningRotation(Quaternion.Euler(new Vector3(0, 180, 0)));
-        }
-        
     }
-
 }

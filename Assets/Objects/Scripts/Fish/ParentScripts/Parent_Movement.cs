@@ -7,7 +7,7 @@ using UnityEngine;
 //Constant is used whenever our fish wants to move at a constat pace around the tank
 //burst is for when they want to move with more of a dashing motion
 //Idle , we aren't moving, but is useful to have for rotation
-public enum MovementType { Constant, Burst, Idle};
+public enum MovementType { Constant, Panic, Burst, Idle};
 
 public class Parent_Movement : MonoBehaviour
 {
@@ -43,19 +43,21 @@ public class Parent_Movement : MonoBehaviour
     protected float curr_RotationSeconds = 0;                                           //used in lerp
     //these are used twogether
     protected float total_secsTurnTime = 0.5f;                                          //how long it takes for this fish to finish turning around
-    protected float[] total_TurnTimeCount = new float[2] { 0.55f, 0.15f };         //and its differ turning speeds for: [roam, cluster, panic]
-
-
+    protected float[] total_TurnTimeCount = new float[2] { 0.55f, 0.15f };              //and its differ turning speeds for: [roam, cluster, panic]
+    private Quaternion end_Reset = Quaternion.Euler(Vector3.zero);               //keeps track of which way this fish is facing
+    private Vector3 saved_TransformRotation = Vector3.zero;                         //keeps track of transform.rotation angles, since they make the quarterions confused
+    private bool firstPhase = true;                                                 //keeps track of what phase we are on, first phase is tilt towards direction, second phase is resetting
     // --------------------------------- Swimming ---------------------------------
     //these ones are for the animation side of swimming, not actually the movement 
     private const float max_SwimDegree = 30;                    //how much this fish can turn its body while swimming
-    private float curr_SwimDegree = 0;                          //what is this fish current turn'd degree
+    private float curr_waddleDegree_y = 0;                          //what is this fish current turn'd degree
     private float start_SwimAnimeSpd = 290;                     //how fast this fish does its swimming animation, (if its a constant speed 40 is good)
     private float curr_SwimAnimationSpeed = 0;                  //this depending on movementtype will change
-    private int curr_SwimDir = 1;                               //used in updating the direction its either 1 or -1
+    private int curr_direction = 1;
     private float curr_SwimLerpSecs = 0;                        //used in updating our swimming swaddle (lerp) t,
-    private const float curr_Decel = 0.73f;                       //how fast this fish stops its swimming swaddle in seconds
-    
+    private const float curr_Decel = 0.73f;                     //how fast this fish stops its swimming swaddle in seconds
+
+
     //doesn't really have a section to be put under, but this is our linear dampening for this fish
     //this one is more of a const cause its only going to get referenced/used to set 
     protected const float linearDamp = 0.5f;
@@ -92,16 +94,16 @@ public class Parent_Movement : MonoBehaviour
 
 
     //basic way fish move
-    protected void UpdatePosition(Vector3 target_pos, float current_Vel, MovementType moveType)
+    protected void UpdatePosition(Vector3 target_pos, float current_Vel, MovementType moveType, float distanceLeft)
     {
         //check here if we are currently turning
-        if (ActivelyTurningRotation()) { return; }
+        if (ActivelyTurningRotation(distanceLeft)) { return; }
 
         //will always need a direction
         var dir = (target_pos - transform.position).normalized;
 
         //and we update our swmming animation
-        SwimmingRotation();
+        //SwimmingRotation();
 
         switch (moveType)
         {
@@ -162,7 +164,7 @@ public class Parent_Movement : MonoBehaviour
 
 
     //create a new idle target, that is within the tank dimensions and outside the fish range.
-    public virtual void NewRandomIdleTarget_Tank(Guppy_States guppy_state = Guppy_States.Roam)
+    public virtual void NewRandomIdleTarget_Tank(MovementType moveType = MovementType.Burst)
     {
 
         //tanke dememsions
@@ -182,23 +184,23 @@ public class Parent_Movement : MonoBehaviour
 
         //since new target
         //doo last since some variables update based on new target
-        NewTargetVariables(curr_roamTarget, guppy_state);
+        NewTargetVariables(curr_roamTarget, moveType);
     }
 
 
     
     //whenever a new target is set we reset some variables
     //this one is specific to a completely new rotation, 
-    public virtual void NewTargetVariables(Vector3 newTarget, Guppy_States guppy_State)
+    public virtual void NewTargetVariables(Vector3 newTarget, MovementType moveType)
     {
         //just for clear-ity, im just gonna put this in here
-        switch (guppy_State)
+        switch (moveType)
         {
-            case Guppy_States.Roam:
+            case MovementType.Burst:
                 total_secsTurnTime = total_TurnTimeCount[0];
                 break;
 
-            case Guppy_States.Panic:
+            case MovementType.Panic:
                 total_secsTurnTime = total_TurnTimeCount[1];
                 break;
 
@@ -301,6 +303,7 @@ public class Parent_Movement : MonoBehaviour
             newAngle.z = Mathf.Atan2(dir.y, dir.x) * (180 / Mathf.PI);
 
         }
+        Debug.Log("New angle: "+newAngle);
 
         //transform.rotation = Quaternion.Euler(newAngle);
         StartTurningRotation(Quaternion.Euler(newAngle));
@@ -326,7 +329,7 @@ public class Parent_Movement : MonoBehaviour
 
         //before we can turn we need to 
         //lower our velocity somehow, so we will set our linear damp super high in here
-        rb.linearDamping = 5;
+        rb.linearDamping = 10;
 
         //get new start rotation variables
         curr_RotationSeconds = 0;                       //reset our counter
@@ -335,7 +338,10 @@ public class Parent_Movement : MonoBehaviour
 
 
         //also reset our swiming variables (might get  changed)
-        curr_SwimDegree = 0;
+        curr_waddleDegree_y = 0;
+
+        //reset our phase tracker
+        firstPhase = true;
 
     }
 
@@ -355,11 +361,11 @@ public class Parent_Movement : MonoBehaviour
     //             (this one is on its own function down below)
     /// </summary>
     /// <returns></returns>
-    private bool ActivelyTurningRotation()
+    private bool ActivelyTurningRotation(float distanceLeft)
     {
         //first case of we are currently turning around
         //the lerp finishes once we reach 1, so anything before 1 is turning around logic
-        if (curr_RotationSeconds < 1)
+        if (firstPhase)
         {
             //essentially, we do a lerp, 
             //where its length of time is based on total_TurnTimeCount, 
@@ -367,42 +373,122 @@ public class Parent_Movement : MonoBehaviour
             transform.rotation = Quaternion.Lerp(start_TurningVector, end_TurningVector, curr_RotationSeconds);
             curr_RotationSeconds += Time.deltaTime * (1 / total_secsTurnTime);
 
+
+
             //this chunk determines exit
-            //the flat value is what would normally be 1, 
-            //but we want to exit a bit early so we can look more natural, but still finsh the lerp
+            //this is once we finish turning completely
+            if (curr_RotationSeconds >= 1)
+            {
+                saved_TransformRotation = end_TurningVector.eulerAngles; //or transform.rotation really
+                end_Reset = GetZeroDirection();
+                firstPhase = false;
+                return false;
+            }
+            //this case is before finishing learp
+            //we can start moving a bit before we completely finish turning.
             if (curr_RotationSeconds >= 0.8f)
             {
-                //all we reset is our linear damp and return false to coninue moving
+                //we reset is our linear damp and update our next set of lerp variables
                 rb.linearDamping = linearDamp;
+
+                //return false to coninue moving
                 return false;
+            }
+            //this is when we finish turning
+            else
+            {
+                return true;
+            }
+
+        }
+        //else we can do swimming animation stuff + reseting tilt
+        else
+        {
+            
+            //------- this part keeps track of the swimming animation. this will pretty much always go off, --------//
+            //now update Y
+            curr_waddleDegree_y += curr_SwimAnimationSpeed * curr_direction * Time.deltaTime;
+
+            //now if  we reach max turning , we want to start doing the other way
+            if (Mathf.Abs(curr_waddleDegree_y) >= max_SwimDegree)
+            {
+                curr_direction = (int)Mathf.Clamp(curr_waddleDegree_y, -1, 1) * -1;
+            }
+
+            //update swimspeed/ give falloff
+            curr_SwimAnimationSpeed = Mathf.Lerp(start_SwimAnimeSpd, 0, curr_SwimLerpSecs);
+
+
+
+            //------------------ this is for resetting our tilt: ---------------------------------//
+            Quaternion newRotation;
+            //we only do it when we are close to our destination point
+            if (distanceLeft < newRoamTarget_MinDistanceRad)
+            {
+                float lerpVal = 1- distanceLeft / (newRoamTarget_MinDistanceRad - targetRoam_ReachedRadius);
+
+                //we can start returning our tilt to zero
+                newRotation = Quaternion.Lerp(end_TurningVector, end_Reset, lerpVal);
+
+                //Debug.Log(transform.rotation.eulerAngles);
+                //Debug.Log(string.Format("Distance Left: {0}, \nlerpVal: {1} \nrotation.y: {2} ", distanceLeft, lerpVal, transform.rotation.eulerAngles.z));
             }
             else
             {
-                //else we keep turning around
-                return true;
+                //still need this for swim waddle
+                newRotation = end_TurningVector;
             }
+
+
+            //------------------- now update fish transform ---------------------------------------------//
+            var temp = newRotation.eulerAngles;
+            temp.y = temp.y + curr_waddleDegree_y;
+            newRotation.eulerAngles = temp;
+            transform.rotation = newRotation;
+
+
         }
         
+        //and return false so we continue with the rest of the update func
         return false;
+        
+    }
+
+    //returns either (-1,0) or (1,0) depending on which way our fish is facing
+    protected Quaternion GetZeroDirection()
+    {
+        //Debug.Log("Y Rotation: " + transform.rotation.eulerAngles.y);
+
+        if (Mathf.Abs(saved_TransformRotation.y) < 90)
+        {
+            return Quaternion.Euler(Vector3.zero);
+        }
+        else
+        {
+            return Quaternion.Euler(new Vector3(0, 180, 0));
+        }
+
 
     }
 
 
-
+    //not used anymore
     /// <summary>
     /// description taken from activelyturning func:
     /// 
-    /// -- a normal swiming rotation, just moving the tail to make it look like
-    //              the fish is swimming
+    /// -- a normal swiming rotation, just moving the fish on the Y axis to make it look like
+    //              the its swimming
+
+    // -- we also add a Z turning so we can finish our tilt to be 0'd instead of looking all weird
     //              
     /// </summary>
     protected virtual void SwimmingRotation()
     {
-
+        /*
         //we are not turning, so we can do a swimming animation
         //since we are just messing with the Y, we have to keep the  x and Z the same
-        Quaternion newSwim = end_TurningVector;
-        Vector3 temp = newSwim.eulerAngles;
+        Quaternion basestart_TurnVec = end_TurningVector;
+        Vector3 angles_baseStart = basestart_TurnVec.eulerAngles;
 
         //now update Y
         curr_SwimDegree += curr_SwimAnimationSpeed * curr_SwimDir * Time.deltaTime;
@@ -417,11 +503,12 @@ public class Parent_Movement : MonoBehaviour
         curr_SwimAnimationSpeed = Mathf.Lerp(start_SwimAnimeSpd, 0, curr_SwimLerpSecs);
 
         //now update fish transform
-        temp.y = temp.y + curr_SwimDegree;
-        newSwim.eulerAngles = temp;
-        transform.rotation = newSwim;
+        angles_baseStart.y = angles_baseStart.y + curr_SwimDegree;
+        basestart_TurnVec.eulerAngles = angles_baseStart;
+        transform.rotation = basestart_TurnVec;
+        */
     }
-
+    
 
 
 
