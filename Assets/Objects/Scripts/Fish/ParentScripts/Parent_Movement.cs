@@ -45,7 +45,6 @@ public class Parent_Movement : MonoBehaviour
     protected float total_secsTurnTime = 0.5f;                                          //how long it takes for this fish to finish turning around
     protected float[] total_TurnTimeCount = new float[2] { 0.55f, 0.15f };              //and its differ turning speeds for: [roam, cluster, panic]
     private Quaternion end_Reset = Quaternion.Euler(Vector3.zero);               //keeps track of which way this fish is facing
-    private Vector3 saved_TransformRotation = Vector3.zero;                         //keeps track of transform.rotation angles, since they make the quarterions confused
     private bool firstPhase = true;                                                 //keeps track of what phase we are on, first phase is tilt towards direction, second phase is resetting
     // --------------------------------- Swimming ---------------------------------
     //these ones are for the animation side of swimming, not actually the movement 
@@ -131,7 +130,7 @@ public class Parent_Movement : MonoBehaviour
                 if( Mathf.Abs(rb.linearVelocityX) + Mathf.Abs(rb.linearVelocityY) < baseVelocity) 
                 {
                     //Debug.Log(curr_SwimLerpSecs);
-                    NewBurstVariables();
+                    NewBurstVariables(distanceLeft);
                     rb.AddForce(dir * curr_BurstVelocity, ForceMode2D.Impulse);
                 }
 
@@ -223,11 +222,19 @@ public class Parent_Movement : MonoBehaviour
 
 
     //this is used in reseting our burst variables, 
-    private void NewBurstVariables()
+    private void NewBurstVariables(float distanceLeft)
     {
         //new random velocity and its matching animation speed variables
         float t = Random.Range(0, (float)1);
-        curr_BurstVelocity = Mathf.Lerp(range_BurstVeloocity[0], range_BurstVeloocity[1], t);
+        if(distanceLeft < newRoamTarget_MinDistanceRad)
+        {
+            //do this so the burst doesn't look outta place from how fast it goes
+            curr_BurstVelocity = Mathf.Lerp(range_BurstVeloocity[0], range_BurstVeloocity[1]/2, t);
+        }
+        else
+        {
+            curr_BurstVelocity = Mathf.Lerp(range_BurstVeloocity[0], range_BurstVeloocity[1], t);
+        }
         start_SwimAnimeSpd = Mathf.Lerp(range_BurstSwimAnimeSPD[0], range_BurstSwimAnimeSPD[1], t);
 
         //reset our lerp timer  too
@@ -303,7 +310,7 @@ public class Parent_Movement : MonoBehaviour
             newAngle.z = Mathf.Atan2(dir.y, dir.x) * (180 / Mathf.PI);
 
         }
-        Debug.Log("New angle: "+newAngle);
+        //Debug.Log(string.Format("Curr angle: {0}, \nNew angle: {1} ", transform.rotation.eulerAngles, newAngle));
 
         //transform.rotation = Quaternion.Euler(newAngle);
         StartTurningRotation(Quaternion.Euler(newAngle));
@@ -379,7 +386,6 @@ public class Parent_Movement : MonoBehaviour
             //this is once we finish turning completely
             if (curr_RotationSeconds >= 1)
             {
-                saved_TransformRotation = end_TurningVector.eulerAngles; //or transform.rotation really
                 end_Reset = GetZeroDirection();
                 firstPhase = false;
                 return false;
@@ -457,15 +463,21 @@ public class Parent_Movement : MonoBehaviour
     //returns either (-1,0) or (1,0) depending on which way our fish is facing
     protected Quaternion GetZeroDirection()
     {
-        //Debug.Log("Y Rotation: " + transform.rotation.eulerAngles.y);
+        //Debug.Log(string.Format("Y Rotation: {0}, \nY NORmal Rotat: {1}, ", transform.rotation.eulerAngles.y, transform.rotation.normalized.eulerAngles));
 
-        if (Mathf.Abs(saved_TransformRotation.y) < 90)
+
+        //we havee to check for the left half of the unit circle, dont think the quarterion goes beyond 360
+        //but if it does we'll have to clamp it some how
+        float val = Mathf.Abs(transform.rotation.eulerAngles.y);
+
+
+        if ( 90 < val && val < 270)
         {
-            return Quaternion.Euler(Vector3.zero);
+            return Quaternion.Euler(new Vector3(0, 180, 0));
         }
         else
         {
-            return Quaternion.Euler(new Vector3(0, 180, 0));
+            return Quaternion.Euler(Vector3.zero);
         }
 
 
